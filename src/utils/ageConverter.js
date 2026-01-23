@@ -1,5 +1,5 @@
-export const convertToGroup = (age) => {
-  const kAge = age + 4;
+export const convertToGroup = (age, correction = 4) => {
+  const kAge = age + correction;
   if (kAge <= 6) return "영유아";
   if (kAge <= 12) return "어린이";
   if (kAge <= 19) return "청소년";

@@ -111,6 +111,10 @@ function App() {
     setIsScanning(true);
 
     try {
+      // 저장된 나이 보정값 가져오기
+      const savedCorrection = localStorage.getItem('ageCorrection');
+      const ageCorrection = savedCorrection ? parseInt(savedCorrection, 10) : 4;
+
       const detections = await faceapi.detectAllFaces(videoRef.current, new faceapi.SsdMobilenetv1Options())
         .withFaceLandmarks()
         .withAgeAndGender();
@@ -120,7 +124,7 @@ function App() {
       } else {
         const newVisitors = detections.map(d => ({
           id: Date.now() + Math.random(),
-          ageGroup: convertToGroup(d.age),
+          ageGroup: convertToGroup(d.age, ageCorrection),
           gender: d.gender,
           source: 'AI'
         }));
@@ -147,6 +151,20 @@ function App() {
     setVisitors(prev => prev.filter(v => v.id !== id));
   };
 
+  const formatVisitorData = (visitors) => {
+    return visitors.map(visitor => ({
+      ...visitor,
+      gender: visitor.gender === 'male' ? '남성' : '여성',
+      source: visitor.source === 'Manual' ? '수동' : 'AI',
+      ageGroup: visitor.ageGroup === '영유아' ? '영유아(~6세)' :
+                visitor.ageGroup === '어린이' ? '어린이(7세~12세)' :
+                visitor.ageGroup === '청소년' ? '청소년(13세~19세)' :
+                visitor.ageGroup === '청년' ? '청년(20세~39세)' :
+                visitor.ageGroup === '중년' ? '중년(40세~49세)' :
+                '장년(50세~)'
+    }));
+  };
+
   const submitData = () => {
     if (visitors.length === 0) return;
     setIsSending(true);
@@ -171,11 +189,13 @@ function App() {
       return;
     }
 
+    const formattedVisitors = formatVisitorData(visitors);
+
     fetch(GOOGLE_SCRIPT_URL, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ visitors: visitors })
+      body: JSON.stringify({ visitors: formattedVisitors })
     }).then(() => {
       setLastCount(currentCount);
       setShowModal(true);
