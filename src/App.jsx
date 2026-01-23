@@ -11,7 +11,9 @@ import CameraCard from './components/CameraCard';
 import VisitorList from './components/VisitorList';
 
 function App() {
-  const [isAdminLocked, setIsAdminLocked] = useState(true);
+  
+  // todo: 관리자 잠금 모드 임시 비활성화. 개발 완료 후 활성화 하기.
+  const [isAdminLocked, setIsAdminLocked] = useState(false);
 
   const videoRef = useRef();
   const [isModelLoaded, setIsModelLoaded] = useState(false);
@@ -21,13 +23,13 @@ function App() {
   const [showModal, setShowModal] = useState(false);
   const [lastCount, setLastCount] = useState(0);
 
-  const [manualGender, setManualGender] = useState('male');
+  const [manualGender, setManualGender] = useState('male');   
   const [manualGroup, setManualGroup] = useState('청년');
 
   const isMobile = useIsMobile();
   const styles = getStyles(isMobile);
 
-  useEffect(() => {
+  useEffect(() => {   
     if (isAdminLocked) return;
 
     const loadModels = async () => {
