@@ -15,10 +15,10 @@ export const RAIM_COLORS = {
 };
 
 export const ageGroups = [
-  { label: "영유아", sub: "0~6세" },
-  { label: "어린이", sub: "7~12세" },
-  { label: "청소년", sub: "13~19세" },
-  { label: "청년", sub: "20~39세" },
-  { label: "중년", sub: "40~49세" },
-  { label: "장년", sub: "50세~" }
+  { label: "영유아(0~6세)", sub: "0~6세" },
+  { label: "어린이(7~12세)", sub: "7~12세" },
+  { label: "청소년(13~19세)", sub: "13~19세" },
+  { label: "청년(20세~39세)", sub: "20~39세" },
+  { label: "중년(40~49세)", sub: "40~49세" },
+  { label: "장년(50세~)", sub: "50세~" }
 ];

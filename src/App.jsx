@@ -23,8 +23,8 @@ function App() {
   const [showModal, setShowModal] = useState(false);
   const [lastCount, setLastCount] = useState(0);
 
-  const [manualGender, setManualGender] = useState('male');   
-  const [manualGroup, setManualGroup] = useState('청년');
+  const [manualGender, setManualGender] = useState('male');
+  const [manualGroup, setManualGroup] = useState('청년(20세~39세)');
 
   const isMobile = useIsMobile();
   const styles = getStyles(isMobile);
