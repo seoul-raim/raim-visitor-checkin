@@ -118,11 +118,12 @@ const getStyles = (isMobile) => ({
   sliderContainer: {
     display: 'flex',
     alignItems: 'center',
-    gap: '16px',
-    padding: '16px',
+    gap: isMobile ? '10px' : '16px',
+    padding: isMobile ? '12px' : '16px',
     backgroundColor: 'white',
     borderRadius: '12px',
-    border: `2px solid ${RAIM_COLORS.BG}`
+    border: `2px solid ${RAIM_COLORS.BG}`,
+    boxSizing: 'border-box'
   },
   slider: {
     flex: 1,
@@ -133,14 +134,15 @@ const getStyles = (isMobile) => ({
     cursor: 'pointer'
   },
   sliderValue: {
-    minWidth: '60px',
+    minWidth: isMobile ? '50px' : '60px',
     textAlign: 'center',
-    fontSize: '18px',
+    fontSize: isMobile ? '16px' : '18px',
     fontWeight: '800',
     color: RAIM_COLORS.DARK,
-    padding: '8px 12px',
+    padding: isMobile ? '6px 8px' : '8px 12px',
     backgroundColor: RAIM_COLORS.BG,
-    borderRadius: '8px'
+    borderRadius: '8px',
+    flexShrink: 0
   },
   saveButton: {
     width: '100%',
