@@ -9,9 +9,9 @@ import AdminLockScreen from './components/AdminLockScreen';
 import ManualEntryCard from './components/ManualEntryCard';
 import CameraCard from './components/CameraCard';
 import VisitorList from './components/VisitorList';
+import Dashboard from './components/Dashboard';
 
 function App() {
-  
   // todo: 관리자 잠금 모드 임시 비활성화. 개발 완료 후 활성화 하기.
   const [isAdminLocked, setIsAdminLocked] = useState(false);
 
@@ -22,14 +22,19 @@ function App() {
   const [isScanning, setIsScanning] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [lastCount, setLastCount] = useState(0);
+  const [showDashboard, setShowDashboard] = useState(false);
 
   const [manualGender, setManualGender] = useState('male');
-  const [manualGroup, setManualGroup] = useState('청년(20세~39세)');
+  const [manualGroup, setManualGroup] = useState('청년');
+
+  // 로고 클릭 추적 (3회 클릭으로 대시보드 열기)
+  const [logoClickCount, setLogoClickCount] = useState(0);
+  const logoClickTimeoutRef = useRef(null);
 
   const isMobile = useIsMobile();
   const styles = getStyles(isMobile);
 
-  useEffect(() => {   
+  useEffect(() => {
     if (isAdminLocked) return;
 
     const loadModels = async () => {
@@ -41,13 +46,25 @@ function App() {
           faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL),
         ]);
         setIsModelLoaded(true);
-        startVideo();
+        // 대시보드가 열려있지 않을 때만 비디오 시작
+        if (!showDashboard) {
+          startVideo();
+        }
       } catch (e) {
         console.error("모델 로딩 실패:", e);
       }
     };
     loadModels();
-  }, [isAdminLocked]);
+  }, [isAdminLocked, showDashboard]);
+
+  // 대시보드 열고 닫을 때 카메라 제어
+  useEffect(() => {
+    if (showDashboard) {
+      stopVideo(); // 대시보드 열 때 카메라 정지
+    } else if (isModelLoaded) {
+      startVideo(); // 대시보드 닫을 때 카메라 재시작
+    }
+  }, [showDashboard, isModelLoaded]);
 
   const startVideo = () => {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
@@ -57,12 +74,47 @@ function App() {
       .catch((err) => console.error("카메라 에러:", err));
   };
 
+  // 카메라 스트림 정지
+  const stopVideo = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  // 로고 클릭 핸들러 (3회 클릭으로 대시보드 진입)
+  const handleLogoClick = () => {
+    const newClickCount = logoClickCount + 1;
+    setLogoClickCount(newClickCount);
+
+    // 기존 타이머 클리어
+    if (logoClickTimeoutRef.current) {
+      clearTimeout(logoClickTimeoutRef.current);
+    }
+
+    // 3회 클릭 시 대시보드 열기
+    if (newClickCount === 3) {
+      setShowDashboard(true);
+      setLogoClickCount(0);
+    } else {
+      // 3초 이상 클릭이 없으면 카운트 초기화
+      logoClickTimeoutRef.current = setTimeout(() => {
+        setLogoClickCount(0);
+      }, 3000);
+    }
+  };
+
 
   const scanFaces = async () => {
     if (!videoRef.current || !isModelLoaded || isScanning) return;
     setIsScanning(true);
 
     try {
+      // 저장된 나이 보정값 가져오기
+      const savedCorrection = localStorage.getItem('ageCorrection');
+      const ageCorrection = savedCorrection ? parseInt(savedCorrection, 10) : 4;
+
       const detections = await faceapi.detectAllFaces(videoRef.current, new faceapi.SsdMobilenetv1Options())
         .withFaceLandmarks()
         .withAgeAndGender();
@@ -72,7 +124,7 @@ function App() {
       } else {
         const newVisitors = detections.map(d => ({
           id: Date.now() + Math.random(),
-          ageGroup: convertToGroup(d.age),
+          ageGroup: convertToGroup(d.age, ageCorrection),
           gender: d.gender,
           source: 'AI'
         }));
@@ -99,10 +151,37 @@ function App() {
     setVisitors(prev => prev.filter(v => v.id !== id));
   };
 
+  const formatVisitorData = (visitors) => {
+    return visitors.map(visitor => ({
+      ...visitor,
+      gender: visitor.gender === 'male' ? '남성' : '여성',
+      source: visitor.source === 'Manual' ? '수동' : 'AI',
+      ageGroup: visitor.ageGroup === '영유아' ? '영유아(~6세)' :
+                visitor.ageGroup === '어린이' ? '어린이(7세~12세)' :
+                visitor.ageGroup === '청소년' ? '청소년(13세~19세)' :
+                visitor.ageGroup === '청년' ? '청년(20세~39세)' :
+                visitor.ageGroup === '중년' ? '중년(40세~49세)' :
+                '장년(50세~)'
+    }));
+  };
+
   const submitData = () => {
     if (visitors.length === 0) return;
     setIsSending(true);
     const currentCount = visitors.length;
+    
+    // 오늘의 누적 입장객 수 저장
+    const today = new Date().toDateString();
+    const savedCount = localStorage.getItem(`visitorCount_${today}`);
+    const totalCount = (savedCount ? parseInt(savedCount, 10) : 0) + currentCount;
+    localStorage.setItem(`visitorCount_${today}`, totalCount.toString());
+    
+    // 오늘의 방문객 상세 데이터 저장 (그래프용)
+    const todayDataKey = `todayVisitors_${today}`;
+    const existingVisitors = localStorage.getItem(todayDataKey);
+    const allVisitors = existingVisitors ? JSON.parse(existingVisitors) : [];
+    allVisitors.push(...visitors);
+    localStorage.setItem(todayDataKey, JSON.stringify(allVisitors));
     
     if (!GOOGLE_SCRIPT_URL) {
       alert("API URL 미설정");
@@ -110,11 +189,13 @@ function App() {
       return;
     }
 
+    const formattedVisitors = formatVisitorData(visitors);
+
     fetch(GOOGLE_SCRIPT_URL, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ visitors: visitors })
+      body: JSON.stringify({ visitors: formattedVisitors })
     }).then(() => {
       setLastCount(currentCount);
       setShowModal(true);
@@ -136,10 +217,14 @@ function App() {
 
       <div style={styles.container}>
         <header style={styles.header}>
-          <img src={logoImg} alt="RAIM Logo" style={styles.logoImage} />
-          <div>
-            <h2 style={styles.title}>입장 등록</h2>
-          </div>
+          <img 
+            src={logoImg} 
+            alt="RAIM Logo" 
+            style={{...styles.logoImage, cursor: 'pointer'}} 
+            onClick={handleLogoClick}
+            title="로고를 3회 터치하여 관리자 대시보드 열기"
+          />
+          <h2 style={styles.title}>입장 등록</h2>
         </header>
         
         <div style={styles.topRow}>
@@ -175,6 +260,14 @@ function App() {
           {isSending ? "전송 중..." : `등록 완료 (${visitors.length}명)`}
         </button>
       </div>
+      
+      {showDashboard && (
+        <Dashboard 
+          onClose={() => setShowDashboard(false)}
+          onSave={() => setShowDashboard(false)}
+        />
+      )}
+      
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
