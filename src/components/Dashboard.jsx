@@ -316,7 +316,7 @@ export default function Dashboard({ onClose, onSave }) {
     }
 
     // 저장된 관람실 정보 로드
-    const savedRoom = localStorage.getItem('room_id');
+    const savedRoom = localStorage.getItem('room_location');
     if (savedRoom) {
       setSelectedRoom(savedRoom);
     }
@@ -335,7 +335,7 @@ export default function Dashboard({ onClose, onSave }) {
     localStorage.setItem('ageCorrection', ageCorrection.toString());
     
     // 관람실 정보 저장
-    localStorage.setItem('room_id', selectedRoom);
+    localStorage.setItem('room_location', selectedRoom);
     
     onSave();
     alert('설정이 저장되었습니다.');
@@ -569,9 +569,10 @@ export default function Dashboard({ onClose, onSave }) {
                 ))}
               </select>
             </div>
+            <div style={styles.infoText}>
+              데이터 전송 시 이 관람실 정보가 함께 전송됩니다.
+            </div>
           </div>
-          
-          {/* 나이 보정값 */}
           <div style={styles.formGroup}>
             <label style={styles.formLabel}>나이 보정값 ({ageCorrection > 0 ? '+' : ''}{ageCorrection}세)</label>
             <div style={styles.sliderContainer}>

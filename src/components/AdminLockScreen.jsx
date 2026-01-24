@@ -83,7 +83,7 @@ export default function AdminLockScreen({ onUnlock }) {
   const styles = getLockStyles(isMobile);
 
   useEffect(() => {
-    const savedRoom = localStorage.getItem('room_id');
+    const savedRoom = localStorage.getItem('room_location');
     if (savedRoom) {
       setSelectedRoom(savedRoom);
     }
@@ -98,7 +98,7 @@ export default function AdminLockScreen({ onUnlock }) {
     }
     
     if (pin === ADMIN_PIN) {
-      localStorage.setItem('room_id', selectedRoom);
+      localStorage.setItem('room_location', selectedRoom);
       onUnlock();
     } else {
       setError(true);

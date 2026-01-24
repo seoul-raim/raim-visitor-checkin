@@ -36,8 +36,8 @@ function App() {
   const styles = getStyles(isMobile);
 
   useEffect(() => {
-    const roomId = localStorage.getItem('room_id');
-    if (!roomId) {
+    const roomLocation = localStorage.getItem('room_location');
+    if (!roomLocation) {
       setShowRoomSetup(true);
     }
   }, []);
@@ -176,8 +176,8 @@ function App() {
   const submitData = async () => {
     if (visitors.length === 0) return;
     
-    const roomId = localStorage.getItem('room_id');
-    if (!roomId) {
+    const roomLocation = localStorage.getItem('room_location');
+    if (!roomLocation) {
       alert('관람실이 설정되지 않았습니다. 관리자 대시보드에서 설정해주세요.');
       return;
     }
@@ -205,7 +205,7 @@ function App() {
       for (const visitor of formattedVisitors) {
         await addDoc(collection(db, "visitors"), {
           ...visitor,
-          location: roomId,
+          location: roomLocation,
           timestamp: serverTimestamp(),
           date: new Date().toISOString().split('T')[0]
         });
