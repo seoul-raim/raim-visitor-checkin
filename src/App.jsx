@@ -11,6 +11,7 @@ import ManualEntryCard from './components/ManualEntryCard';
 import CameraCard from './components/CameraCard';
 import VisitorList from './components/VisitorList';
 import Dashboard from './components/Dashboard';
+import ScanConfirmModal from './components/ScanConfirmModal';
 
 function App() {
   const [isAdminLocked, setIsAdminLocked] = useState(false);
@@ -24,16 +25,20 @@ function App() {
   const [showModal, setShowModal] = useState(false);
   const [lastCount, setLastCount] = useState(0);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [showScanConfirm, setShowScanConfirm] = useState(false);
+  const [scannedVisitors, setScannedVisitors] = useState([]);
 
   const [manualGender, setManualGender] = useState('male');
   const [manualGroup, setManualGroup] = useState('청년');
+  const [isAIMode, setIsAIMode] = useState(true);
 
   // 로고 클릭 추적 (3회 클릭으로 대시보드 열기)
   const [logoClickCount, setLogoClickCount] = useState(0);
   const logoClickTimeoutRef = useRef(null);
 
-  const isMobile = useIsMobile();
-  const styles = getStyles(isMobile);
+  const { isMobile, isTablet, device } = useIsMobile();
+  const isDesktop = device === 'desktop';
+  const styles = getStyles(device);
 
   useEffect(() => {
     const roomLocation = localStorage.getItem('room_location');
@@ -63,16 +68,25 @@ function App() {
       }
     };
     loadModels();
-  }, [isAdminLocked, showDashboard, showRoomSetup]);
+  }, [isAdminLocked, showDashboard, showRoomSetup, isAIMode]);
 
   // 대시보드 열고 닫을 때 카메라 제어
   useEffect(() => {
     if (showDashboard) {
       stopVideo(); // 대시보드 열 때 카메라 정지
-    } else if (isModelLoaded) {
-      startVideo(); // 대시보드 닫을 때 카메라 재시작
+    } else if (isModelLoaded && isAIMode) {
+      startVideo(); // 대시보드 닫을 때 AI 모드면 카메라 재시작
     }
-  }, [showDashboard, isModelLoaded]);
+  }, [showDashboard, isModelLoaded, isAIMode]);
+
+  // AI 모드 전환 시 카메라 제어
+  useEffect(() => {
+    if (isAIMode && isModelLoaded && !showDashboard) {
+      startVideo(); // AI 모드로 전환 시 카메라 시작
+    } else {
+      stopVideo(); // 수동 모드로 전환 시 카메라 정지
+    }
+  }, [isAIMode, isModelLoaded, showDashboard]);
 
   const startVideo = () => {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
@@ -136,13 +150,93 @@ function App() {
           gender: d.gender,
           source: 'AI'
         }));
-        setVisitors(prev => [...prev, ...newVisitors]);
+        setScannedVisitors(newVisitors);
+        setShowScanConfirm(true);
       }
     } catch (error) {
       console.error(error);
     } finally {
       setIsScanning(false);
     }
+  };
+
+  const handleScanConfirm = async () => {
+    if (scannedVisitors.length === 0) return;
+    
+    const roomLocation = localStorage.getItem('room_location');
+    if (!roomLocation) {
+      alert('관람실이 설정되지 않았습니다. 관리자 대시보드에서 설정해주세요.');
+      return;
+    }
+    
+    try {
+      setIsSending(true);
+      const today = new Date().toDateString();
+      const savedCount = localStorage.getItem(`visitorCount_${today}`);
+      const totalCount = (savedCount ? parseInt(savedCount, 10) : 0) + scannedVisitors.length;
+      localStorage.setItem(`visitorCount_${today}`, totalCount.toString());
+      
+      const todayDataKey = `todayVisitors_${today}`;
+      const existingVisitors = localStorage.getItem(todayDataKey);
+      const allVisitors = existingVisitors ? JSON.parse(existingVisitors) : [];
+      allVisitors.push(...scannedVisitors);
+      localStorage.setItem(todayDataKey, JSON.stringify(allVisitors));
+      
+      const formattedVisitors = scannedVisitors.map(visitor => ({
+        ...visitor,
+        gender: visitor.gender === 'male' ? '남성' : '여성',
+        source: 'AI',
+        ageGroup: visitor.ageGroup === '영유아' ? '영유아(~6세)' :
+                  visitor.ageGroup === '어린이' ? '어린이(7세~12세)' :
+                  visitor.ageGroup === '청소년' ? '청소년(13세~19세)' :
+                  visitor.ageGroup === '청년' ? '청년(20세~39세)' :
+                  visitor.ageGroup === '중년' ? '중년(40세~49세)' :
+                  '장년(50세~)'
+      }));
+      
+      for (const visitor of formattedVisitors) {
+        await addDoc(collection(db, "visitors"), {
+          ...visitor,
+          location: roomLocation,
+          timestamp: serverTimestamp(),
+          date: new Date().toISOString().split('T')[0]
+        });
+      }
+      
+      setLastCount(scannedVisitors.length);
+      setShowModal(true);
+      setShowScanConfirm(false);
+      setScannedVisitors([]);
+      setIsAIMode(true);
+    } catch (error) {
+      console.error("Firebase 전송 실패:", error);
+      alert("데이터 전송 실패. 인터넷 연결을 확인해주세요.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleScanEdit = () => {
+    setVisitors(prev => [...prev, ...scannedVisitors]);
+    setShowScanConfirm(false);
+    setIsAIMode(false);
+    setScannedVisitors([]);
+  };
+
+  const handleScanCancel = () => {
+    setShowScanConfirm(false);
+    setScannedVisitors([]);
+  };
+
+  const handleToggleMode = () => {
+    if (isAIMode) {
+      // AI 모드에서 수동으로 전환할 때 카메라/스캔 상태 정리
+      stopVideo();
+      setIsScanning(false);
+      setShowScanConfirm(false);
+      setScannedVisitors([]);
+    }
+    setIsAIMode((prev) => !prev);
   };
 
   const addManualVisitor = () => {
@@ -214,6 +308,9 @@ function App() {
       setLastCount(currentCount);
       setShowModal(true);
       setVisitors([]);
+      
+      // 등록 완료 후 AI 모드로 전환하고 카메라 재시작
+      setIsAIMode(true);
     } catch (error) {
       console.error("Firebase 전송 실패:", error);
       alert("데이터 전송 실패. 인터넷 연결을 확인해주세요.");
@@ -228,11 +325,18 @@ function App() {
 
   if (showRoomSetup) {
     return <AdminLockScreen onUnlock={() => setShowRoomSetup(false)} />;
-  }
+  } 
 
   return (
     <div style={styles.pageBackground}>
       <SuccessModal isOpen={showModal} onClose={() => setShowModal(false)} count={lastCount} />
+      <ScanConfirmModal 
+        isOpen={showScanConfirm}
+        onClose={handleScanCancel}
+        scannedVisitors={scannedVisitors}
+        onConfirm={handleScanConfirm}
+        onEdit={handleScanEdit}
+      />
 
       <div style={styles.container}>
         <header style={styles.header}>
@@ -247,37 +351,53 @@ function App() {
         </header>
         
         <div style={styles.topRow}>
-          <ManualEntryCard
-            manualGender={manualGender}
-            setManualGender={setManualGender}
-            manualGroup={manualGroup}
-            setManualGroup={setManualGroup}
-            onAdd={addManualVisitor}
-          />
-          <CameraCard
-            videoRef={videoRef}
-            isModelLoaded={isModelLoaded}
-            isScanning={isScanning}
-            onScan={scanFaces}
-          />
+          {isAIMode ? (
+            <CameraCard
+              videoRef={videoRef}
+              isModelLoaded={isModelLoaded}
+              isScanning={isScanning}
+              onScan={scanFaces}
+              style={{ width: '100%' }}
+            />
+          ) : (
+            <ManualEntryCard
+              manualGender={manualGender}
+              setManualGender={setManualGender}
+              manualGroup={manualGroup}
+              setManualGroup={setManualGroup}
+              onAdd={addManualVisitor}
+              style={{ width: '100%' }}
+            />
+          )}
         </div>
 
         <div style={styles.bottomRow}>
           <VisitorList
             visitors={visitors}
             onRemove={removeVisitor}
+            onAdd={addManualVisitor}
           />
         </div>
 
-        <button 
-          onClick={submitData}
-          disabled={isSending || visitors.length === 0}
-          style={{ 
-            ...styles.submitButton,
-            ...(visitors.length > 0 ? styles.submitButtonActive : styles.submitButtonDisabled)
-          }}>
-          {isSending ? "전송 중..." : `등록 완료 (${visitors.length}명)`}
-        </button>
+        <div style={styles.buttonRow}>
+          <button 
+            onClick={submitData}
+            disabled={isSending || visitors.length === 0}
+            style={{ 
+              ...styles.submitButton,
+              ...(visitors.length > 0 ? styles.submitButtonActive : styles.submitButtonDisabled),
+              flex: 2
+            }}>
+            {isSending ? "전송 중..." : `완료 (${visitors.length}명)`}
+          </button>
+          
+          <button 
+            onClick={handleToggleMode}
+            style={styles.modeSwitchButton}
+          >
+            {isAIMode ? '수동 입력' : 'AI 인식'}
+          </button>
+        </div>
       </div>
       
       {showDashboard && (
@@ -295,57 +415,104 @@ function App() {
   );
 }
 
-const getStyles = (isMobile) => ({
-  pageBackground: { 
-    minHeight: '100vh', backgroundColor: RAIM_COLORS.BG, 
-    padding: isMobile ? '10px' : '20px', boxSizing: 'border-box' 
-  },
-  container: { 
-    maxWidth: '1000px', margin: '0 auto', backgroundColor: '#ffffff', 
-    borderRadius: '20px', padding: isMobile ? '15px' : '25px', 
-    boxShadow: '0 10px 30px rgba(0, 68, 139, 0.08)', width: '100%', 
-    boxSizing: 'border-box', overflow: 'hidden' 
-  }, 
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: '15px',
-    paddingBottom: '10px',
-    borderBottom: `2px solid ${RAIM_COLORS.BG}`
-  },
-  logoImage: { 
-    height: isMobile ? '50px' : '80px', width: 'auto' 
-  },
-  title: { 
-    margin: 0, fontSize: isMobile ? '18px' : '24px', 
-    color: RAIM_COLORS.DARK, fontWeight: '800' 
-  },
-  topRow: { 
-    display: 'flex', 
-    flexDirection: 'row', 
-    gap: isMobile ? '8px' : '20px', 
-    marginBottom: '10px',
-    height: isMobile ? '230px' : '360px' 
-  },
-  bottomRow: { 
-    display: 'flex', flexDirection: 'column', flex: 1 
-  },
-  submitButton: { 
-    width: '100%', display:'flex', alignItems:'center', 
-    justifyContent:'center', padding: isMobile ? '14px' : '18px', 
-    fontSize: isMobile ? '16px' : '18px', fontWeight: '800', 
-    border: 'none', borderRadius: '16px', transition: 'all 0.3s', 
-    marginTop: '10px' 
-  },
-  submitButtonActive: { 
-    background: `linear-gradient(135deg, ${RAIM_COLORS.MEDIUM}, ${RAIM_COLORS.DARK})`, 
-    color: 'white', cursor: 'pointer', 
-    boxShadow: '0 8px 20px rgba(0, 68, 139, 0.25)' 
-  },
-  submitButtonDisabled: { 
-    backgroundColor: '#E2E8F0', color: '#94A3B8', cursor: 'not-allowed' 
-  }
-});
+const getStyles = (device) => {
+  const pick = (map) => map[device] ?? map.desktop;
+    const radius = pick({ mobile: '18px', tabletA9: '24px', desktop: '28px' });
+
+  return {
+    pageBackground: { 
+      minHeight: '100vh', 
+      backgroundColor: RAIM_COLORS.BG, 
+      padding: pick({ mobile: '10px', tabletA9: '16px', desktop: '22px' }), 
+      boxSizing: 'border-box' 
+    },
+    container: { 
+      maxWidth: pick({ mobile: '100%', tabletA9: '1200px', desktop: '1400px' }), 
+      margin: '0 auto', 
+      backgroundColor: '#ffffff', 
+      borderRadius: radius, 
+      padding: pick({ mobile: '14px', tabletA9: '22px', desktop: '26px' }), 
+      boxShadow: '0 14px 36px rgba(0, 68, 139, 0.08)', 
+      width: '100%', 
+      boxSizing: 'border-box', 
+      overflow: 'hidden' 
+    }, 
+    header: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: pick({ mobile: '12px', tabletA9: '16px', desktop: '18px' }),
+      marginBottom: pick({ mobile: '10px', tabletA9: '16px', desktop: '18px' }),
+      height: pick({ mobile: '60px', tabletA9: '90px', desktop: '100px' }),
+      width: 'auto',
+      paddingBottom: '10px',
+      borderBottom: `2px solid ${RAIM_COLORS.BG}`
+    },
+    logoImage: { 
+      height: pick({ mobile: '60px', tabletA9: '100px', desktop: '100px' }), width: 'auto' 
+    },
+    title: { 
+      margin: 0, 
+      fontSize: pick({ mobile: '20px', tabletA9: '26px', desktop: '30px' }), 
+      color: RAIM_COLORS.DARK, 
+      fontWeight: '800' 
+    },
+    topRow: { 
+      display: 'flex', 
+      flexDirection: 'row', 
+      gap: pick({ mobile: '8px', tabletA9: '14px', desktop: '18px' }), 
+      marginBottom: pick({ mobile: '10px', tabletA9: '14px', desktop: '16px' }),
+      height: pick({ mobile: '300px', tabletA9: '600px', desktop: '720px' }) 
+    },
+    bottomRow: { 
+      display: 'flex', 
+      flexDirection: 'column', 
+      flex: 0.8,
+      minHeight: pick({ mobile: '200px', tabletA9: '280px', desktop: '300px' })
+    },
+    buttonRow: {
+      display: 'flex',
+      flexDirection: pick({ mobile: 'row', tabletA9: 'row', desktop: 'row' }),
+      flexWrap: 'nowrap',
+      alignItems: 'stretch',
+      gap: pick({ mobile: '10px', tabletA9: '14px', desktop: '15px' }),
+      marginTop: pick({ mobile: '12px', tabletA9: '16px', desktop: '18px' })
+    },
+    modeSwitchButton: {
+      padding: pick({ mobile: '14px', tabletA9: '19px', desktop: '20px' }),
+      fontSize: pick({ mobile: '17px', tabletA9: '20px', desktop: '21px' }),
+      fontWeight: '800',
+      backgroundColor: '#DC2626',
+      color: 'white',
+      border: 'none',
+      borderRadius: radius,
+      cursor: 'pointer',
+      transition: 'all 0.3s',
+      flex: 1,
+      boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)',
+      minHeight: pick({ mobile: '52px', tabletA9: '60px', desktop: '64px' })
+    },
+    submitButton: { 
+      flex: pick({ mobile: 1, tabletA9: 2, desktop: 2 }), display:'flex', alignItems:'center', 
+      justifyContent:'center', 
+      padding: pick({ mobile: '14px', tabletA9: '19px', desktop: '20px' }), 
+      fontSize: pick({ mobile: '17px', tabletA9: '20px', desktop: '21px' }), 
+      minHeight: pick({ mobile: '52px', tabletA9: '60px', desktop: '64px' }),
+      fontWeight: '800', 
+      border: 'none', 
+      borderRadius: radius, 
+      transition: 'all 0.3s', 
+      margin: 0,
+    },
+    submitButtonActive: { 
+      background: `linear-gradient(135deg, ${RAIM_COLORS.MEDIUM}, ${RAIM_COLORS.DARK})`, 
+      color: 'white', cursor: 'pointer', 
+      boxShadow: '0 8px 20px rgba(0, 68, 139, 0.25)' 
+    },
+    submitButtonDisabled: { 
+      backgroundColor: '#E2E8F0', color: '#94A3B8', cursor: 'not-allowed' 
+    }
+  };
+};
 
 export default App;
