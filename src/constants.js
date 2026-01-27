@@ -23,8 +23,11 @@ export const ageGroups = [
 ];
 
 export const roomLocations = [
-  "Room A",
-  "Room B",
-  "Room C",
-  "Room D"
+  "상설전시",
+  "기획전시",
+  "사일런트 도슨트",
+  "전시연계",
+  "다목적실-1",
+  "다목적실-2",
+  "다목적실-3"
 ];
