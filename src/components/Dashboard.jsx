@@ -275,6 +275,58 @@ const getStyles = (device) => {
     transform: 'translateY(-50%)',
     pointerEvents: 'none',
     zIndex: 1
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1100,
+    padding: pick({ mobile: '12px', tablet: '14px', tabletA9: '16px', desktop: '18px' }),
+    boxSizing: 'border-box'
+  },
+  modalCard: {
+    backgroundColor: 'white',
+    borderRadius: pick({ mobile: '18px', tablet: '20px', tabletA9: '22px', desktop: '22px' }),
+    padding: pick({ mobile: '24px', tablet: '28px', tabletA9: '30px', desktop: '32px' }),
+    width: '100%',
+    maxWidth: '420px',
+    boxShadow: '0 18px 40px rgba(0, 68, 139, 0.25)',
+    border: `1px solid ${RAIM_COLORS.BG}`,
+    textAlign: 'center'
+  },
+  modalTitle: {
+    margin: '0 0 10px 0',
+    fontSize: pick({ mobile: '20px', tablet: '22px', tabletA9: '22px', desktop: '22px' }),
+    fontWeight: '800',
+    color: RAIM_COLORS.DARK
+  },
+  modalBody: {
+    margin: '0 0 18px 0',
+    fontSize: pick({ mobile: '15px', tablet: '16px', tabletA9: '16px', desktop: '16px' }),
+    color: RAIM_COLORS.MUTED,
+    lineHeight: 1.5
+  },
+  modalButtonRow: {
+    display: 'flex',
+    justifyContent: 'center'
+  },
+  modalButton: {
+    padding: pick({ mobile: '12px 20px', tablet: '14px 24px', tabletA9: '14px 24px', desktop: '14px 24px' }),
+    background: `linear-gradient(135deg, ${RAIM_COLORS.DARK}, ${RAIM_COLORS.MEDIUM})`,
+    color: 'white',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: pick({ mobile: '16px', tablet: '17px', tabletA9: '17px', desktop: '17px' }),
+    fontWeight: '700',
+    cursor: 'pointer',
+    minWidth: '120px',
+    boxShadow: '0 6px 16px rgba(0, 68, 139, 0.25)'
   }
   };
 };
@@ -286,6 +338,7 @@ export default function Dashboard({ onClose, onSave }) {
   const [todayCount, setTodayCount] = useState(0);
   const [ageCorrection, setAgeCorrection] = useState(4);
   const [selectedRoom, setSelectedRoom] = useState("");
+  const [showSaveModal, setShowSaveModal] = useState(false);
   const [visitorStats, setVisitorStats] = useState({
     ageGroups: {},
     gender: { male: 0, female: 0 }
@@ -365,9 +418,13 @@ export default function Dashboard({ onClose, onSave }) {
     
     // 관람실 정보 저장
     localStorage.setItem('room_location', selectedRoom);
-    
+
+    setShowSaveModal(true);
+  };
+
+  const handleCloseSaveModal = () => {
+    setShowSaveModal(false);
     onSave();
-    alert('설정이 저장되었습니다.');
   };
 
   const getSliderStyle = () => ({
@@ -638,6 +695,18 @@ export default function Dashboard({ onClose, onSave }) {
           설정 저장
         </button>
       </div>
+
+      {showSaveModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalCard}>
+            <h3 style={styles.modalTitle}>설정이 저장되었습니다</h3>
+            <p style={styles.modalBody}>관람실과 나이 보정값 설정이 저장되었어요.</p>
+            <div style={styles.modalButtonRow}>
+              <button style={styles.modalButton} onClick={handleCloseSaveModal}>확인</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
