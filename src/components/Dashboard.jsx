@@ -1,176 +1,187 @@
 import { useState, useEffect } from 'react';
-import { Settings, Users, Calendar, Save, X, Sliders, BarChart3, MapPin } from 'lucide-react';
+import { Settings, Users, Calendar, Save, X, Sliders, BarChart3, MapPin, ChevronDown } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { RAIM_COLORS, ageGroups, roomLocations } from '../constants';
 
-const getStyles = (isMobile) => ({
-  dashboardOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-    backdropFilter: 'blur(4px)'
-  },
-  dashboardModal: {
-    backgroundColor: 'white',
-    borderRadius: '24px',
-    padding: isMobile ? '16px' : '32px',
-    width: isMobile ? '92%' : '700px',
-    maxWidth: '92%',
-    maxHeight: '90vh',
-    overflowY: 'auto',
-    boxShadow: '0 25px 50px rgba(0, 68, 139, 0.25)',
-    border: `1px solid ${RAIM_COLORS.BG}`,
-    boxSizing: 'border-box'
-  },
-  dashboardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: isMobile ? '20px' : '30px',
-    paddingBottom: isMobile ? '15px' : '20px',
-    borderBottom: `3px solid ${RAIM_COLORS.BG}`
-  },
-  dashboardTitle: {
-    margin: 0,
-    fontSize: isMobile ? '22px' : '28px',
-    color: RAIM_COLORS.DARK,
-    fontWeight: '800',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px'
-  },
-  closeButton: {
-    background: RAIM_COLORS.BG,
-    border: 'none',
-    cursor: 'pointer',
-    color: RAIM_COLORS.MUTED,
-    padding: '10px',
-    borderRadius: '12px',
-    transition: 'all 0.3s',
-    fontSize: '18px'
-  },
-  gridContainer: {
-    display: 'grid',
-    gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: isMobile ? '16px' : '24px',
-    marginBottom: isMobile ? '20px' : '30px'
-  },
-  section: {
-    backgroundColor: '#FAFBFC',
-    borderRadius: '16px',
-    padding: isMobile ? '16px' : '24px',
-    border: `1px solid ${RAIM_COLORS.BG}`,
-    transition: 'all 0.3s',
-    borderTop: `4px solid ${RAIM_COLORS.DARK}`,
-    boxSizing: 'border-box'
-  },
-  sectionTitle: {
-    fontSize: isMobile ? '16px' : '18px',
-    color: RAIM_COLORS.DARK,
-    fontWeight: '700',
-    marginBottom: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px'
-  },
-  statsCard: {
+const getStyles = (device) => {
+  const pick = (map) => map[device] ?? map.desktop;
+  return {
+    dashboardOverlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      backdropFilter: 'blur(4px)',
+      padding: pick({ mobile: '12px', tablet: '16px', tabletA9: '18px', desktop: '20px' }),
+      boxSizing: 'border-box'
+    },
+    dashboardModal: {
+      backgroundColor: 'white',
+      borderRadius: pick({ mobile: '22px', tablet: '26px', tabletA9: '28px', desktop: '28px' }),
+      padding: pick({ mobile: '26px', tablet: '34px', tabletA9: '38px', desktop: '40px' }),
+      width: '100%',
+      maxWidth: pick({ mobile: '980px', tablet: '1080px', tabletA9: '1100px', desktop: '1100px' }),
+      maxHeight: '90vh',
+      overflowY: 'auto',
+      boxShadow: '0 25px 50px rgba(0, 68, 139, 0.25)',
+      border: `1px solid ${RAIM_COLORS.BG}`,
+      boxSizing: 'border-box'
+    },
+    dashboardHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: pick({ mobile: '22px', tablet: '30px', tabletA9: '32px', desktop: '35px' }),
+      paddingBottom: pick({ mobile: '16px', tablet: '20px', tabletA9: '22px', desktop: '25px' }),
+      borderBottom: `3px solid ${RAIM_COLORS.BG}`
+    },
+    dashboardTitle: {
+      margin: 0,
+      fontSize: pick({ mobile: '26px', tablet: '32px', tabletA9: '34px', desktop: '36px' }),
+      color: RAIM_COLORS.DARK,
+      fontWeight: '800',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '15px'
+    },
+    closeButton: {
+      background: RAIM_COLORS.BG,
+      border: 'none',
+      cursor: 'pointer',
+      color: RAIM_COLORS.MUTED,
+      padding: pick({ mobile: '12px', tablet: '14px', tabletA9: '14px', desktop: '14px' }),
+      borderRadius: '16px',
+      transition: 'all 0.3s',
+      fontSize: '18px',
+      minWidth: pick({ mobile: '44px', tablet: '48px', tabletA9: '50px', desktop: '50px' }),
+      minHeight: pick({ mobile: '44px', tablet: '48px', tabletA9: '50px', desktop: '50px' }),
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    gridContainer: {
+      display: 'grid',
+      gridTemplateColumns: pick({ mobile: 'repeat(auto-fit, minmax(320px, 1fr))', tablet: 'repeat(auto-fit, minmax(420px, 1fr))', tabletA9: 'repeat(auto-fit, minmax(440px, 1fr))', desktop: 'repeat(auto-fit, minmax(450px, 1fr))' }),
+      gap: pick({ mobile: '16px', tablet: '22px', tabletA9: '26px', desktop: '30px' }),
+      marginBottom: pick({ mobile: '22px', tablet: '28px', tabletA9: '32px', desktop: '35px' })
+    },
+    section: {
+      backgroundColor: '#FAFBFC',
+      borderRadius: pick({ mobile: '16px', tablet: '18px', tabletA9: '20px', desktop: '20px' }),
+      padding: pick({ mobile: '20px', tablet: '26px', tabletA9: '28px', desktop: '30px' }),
+      border: `1px solid ${RAIM_COLORS.BG}`,
+      transition: 'all 0.3s',
+      borderTop: `4px solid ${RAIM_COLORS.DARK}`,
+      boxSizing: 'border-box'
+    },
+    sectionTitle: {
+      fontSize: pick({ mobile: '18px', tablet: '20px', tabletA9: '21px', desktop: '22px' }),
+      color: RAIM_COLORS.DARK,
+      fontWeight: '700',
+      marginBottom: pick({ mobile: '18px', tablet: '22px', tabletA9: '24px', desktop: '25px' }),
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px'
+    },
+    statsCard: {
     background: `linear-gradient(135deg, ${RAIM_COLORS.DARK}, ${RAIM_COLORS.MEDIUM})`,
-    borderRadius: '16px',
-    padding: '30px 20px',
+    borderRadius: '20px',
+    padding: '40px 30px',
     textAlign: 'center',
     color: 'white',
     position: 'relative',
     overflow: 'hidden'
   },
   statsNumber: {
-    fontSize: isMobile ? '42px' : '56px',
+    fontSize: '68px',
     color: 'white',
     fontWeight: '800',
-    margin: '15px 0',
+    margin: '20px 0',
     textShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
     position: 'relative',
     zIndex: 1
   },
   statsLabel: {
-    fontSize: '14px',
+    fontSize: '18px',
     color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '600',
     position: 'relative',
     zIndex: 1
   },
   formGroup: {
-    marginBottom: '24px'
+    marginBottom: '30px'
   },
   formLabel: {
     display: 'block',
-    marginBottom: '10px',
-    fontSize: '14px',
+    marginBottom: '12px',
+    fontSize: '18px',
     fontWeight: '600',
     color: RAIM_COLORS.DARK
   },
   sliderContainer: {
     display: 'flex',
     alignItems: 'center',
-    gap: isMobile ? '10px' : '16px',
-    padding: isMobile ? '12px' : '16px',
+    gap: pick({ mobile: '8px', tablet: '20px', tabletA9: '20px', desktop: '20px' }),
+    padding: pick({ mobile: '12px', tablet: '20px', tabletA9: '20px', desktop: '20px' }),
     backgroundColor: 'white',
-    borderRadius: '12px',
+    borderRadius: '16px',
     border: `2px solid ${RAIM_COLORS.BG}`,
     boxSizing: 'border-box'
   },
   slider: {
     flex: 1,
-    height: '8px',
-    borderRadius: '4px',
+    height: '10px',
+    borderRadius: '5px',
     outline: 'none',
     WebkitAppearance: 'none',
     cursor: 'pointer'
   },
   sliderValue: {
-    minWidth: isMobile ? '50px' : '60px',
+    minWidth: pick({ mobile: '50px', tablet: '80px', tabletA9: '80px', desktop: '80px' }),
     textAlign: 'center',
-    fontSize: isMobile ? '16px' : '18px',
+    fontSize: pick({ mobile: '16px', tablet: '24px', tabletA9: '24px', desktop: '24px' }),
     fontWeight: '800',
     color: RAIM_COLORS.DARK,
-    padding: isMobile ? '6px 8px' : '8px 12px',
+    padding: pick({ mobile: '6px 10px', tablet: '10px 18px', tabletA9: '10px 18px', desktop: '10px 18px' }),
     backgroundColor: RAIM_COLORS.BG,
-    borderRadius: '8px',
+    borderRadius: '12px',
     flexShrink: 0
   },
   saveButton: {
     width: '100%',
-    padding: '18px',
+    padding: '24px',
     background: `linear-gradient(135deg, ${RAIM_COLORS.DARK}, ${RAIM_COLORS.MEDIUM})`,
     color: 'white',
     border: 'none',
-    borderRadius: '16px',
-    fontSize: '16px',
+    borderRadius: '20px',
+    fontSize: '20px',
     fontWeight: '700',
     cursor: 'pointer',
     transition: 'all 0.3s',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '10px',
-    boxShadow: '0 8px 24px rgba(0, 68, 139, 0.3)'
+    gap: '12px',
+    boxShadow: '0 8px 24px rgba(0, 68, 139, 0.3)',
+    minHeight: '70px'
   },
   infoText: {
-    fontSize: '12px',
+    fontSize: '15px',
     color: RAIM_COLORS.MUTED,
-    marginTop: '8px',
-    textAlign: 'center'
+    marginTop: '12px',
+    textAlign: 'center',
+    lineHeight: '1.5'
   },
   iconWrapper: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '12px',
+    width: '48px',
+    height: '48px',
+    borderRadius: '14px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -179,57 +190,62 @@ const getStyles = (isMobile) => ({
   },
   chartContainer: {
     backgroundColor: 'white',
-    borderRadius: '12px',
-    padding: '16px',
+    borderRadius: '16px',
+    padding: '24px',
     border: `1px solid ${RAIM_COLORS.BG}`
   },
   chartTitle: {
-    fontSize: '14px',
+    fontSize: '18px',
     fontWeight: '600',
     color: RAIM_COLORS.DARK,
-    marginBottom: '12px',
+    marginBottom: '18px',
     textAlign: 'center'
   },
   barChart: {
     width: '100%',
-    height: isMobile ? '200px' : '280px'
+    height: '340px'
   },
   barGroup: {
     display: 'flex',
     alignItems: 'flex-end',
     justifyContent: 'space-around',
-    height: isMobile ? '160px' : '240px',
-    marginBottom: '8px',
-    overflow: 'hidden'
+    height: '300px',
+    marginBottom: '10px',
+    overflow: 'visible',
+    gap: pick({ mobile: '8px', tablet: '12px', tabletA9: '12px', desktop: '12px' })
   },
   bar: {
     flex: 1,
-    margin: '0 2px',
-    borderRadius: '4px 4px 0 0',
+    margin: '0 3px',
+    borderRadius: '6px 6px 0 0',
     transition: 'all 0.3s',
     position: 'relative'
   },
   barLabel: {
-    fontSize: '10px',
+    fontSize: pick({ mobile: '11px', tablet: '14px', tabletA9: '14px', desktop: '14px' }),
     color: RAIM_COLORS.MUTED,
-    textAlign: 'center'
+    textAlign: 'center',
+    fontWeight: '500',
+    lineHeight: '1.2',
+    maxWidth: '60px',
+    wordBreak: 'break-word'
   },
   genderChart: {
     display: 'flex',
     justifyContent: 'space-around',
     alignItems: 'center',
-    padding: '16px 0'
+    padding: '20px 0'
   },
   genderBar: {
-    width: '80px',
-    height: '40px',
-    borderRadius: '8px',
+    width: '100px',
+    height: '50px',
+    borderRadius: '12px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     color: 'white',
     fontWeight: '600',
-    fontSize: '14px'
+    fontSize: '18px'
   },
   selectWrapper: {
     position: 'relative',
@@ -238,21 +254,34 @@ const getStyles = (isMobile) => ({
   },
   select: {
     width: '100%',
-    padding: '15px 15px 15px 45px',
-    fontSize: '16px',
+    padding: '18px 18px 18px 52px',
+    fontSize: '18px',
     border: `2px solid ${RAIM_COLORS.BG}`,
-    borderRadius: '12px',
+    borderRadius: '16px',
     outline: 'none',
     transition: 'border 0.2s',
     boxSizing: 'border-box',
     backgroundColor: 'white',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    minHeight: '58px',
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    MozAppearance: 'none'
+  },
+  selectIcon: {
+    position: 'absolute',
+    right: '18px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    pointerEvents: 'none',
+    zIndex: 1
   }
-});
+  };
+};
 
 export default function Dashboard({ onClose, onSave }) {
-  const isMobile = useIsMobile();
-  const styles = getStyles(isMobile);
+  const { device } = useIsMobile();
+  const styles = getStyles(device);
   
   const [todayCount, setTodayCount] = useState(0);
   const [ageCorrection, setAgeCorrection] = useState(4);
@@ -412,13 +441,12 @@ export default function Dashboard({ onClose, onSave }) {
         <div style={styles.chartTitle}>성별 분포</div>
         <div style={{ 
           display: 'flex', 
-          flexDirection: isMobile ? 'column' : 'row',
           alignItems: 'center', 
           justifyContent: 'center', 
-          gap: isMobile ? '20px' : '40px', 
-          padding: isMobile ? '16px' : '20px'
+          gap: '40px', 
+          padding: '24px'
         }}>
-          <div style={{ position: 'relative', width: isMobile ? '120px' : '140px', height: isMobile ? '120px' : '140px' }}>
+          <div style={{ position: 'relative', width: '180px', height: '180px' }}>
             <div
               style={{
                 width: '100%',
@@ -433,8 +461,8 @@ export default function Dashboard({ onClose, onSave }) {
             >
               <div
                 style={{
-                  width: isMobile ? '85px' : '100px',
-                  height: isMobile ? '85px' : '100px',
+                  width: '130px',
+                  height: '130px',
                   borderRadius: '50%',
                   backgroundColor: 'white',
                   display: 'flex',
@@ -443,47 +471,47 @@ export default function Dashboard({ onClose, onSave }) {
                   flexDirection: 'column'
                 }}
               >
-                <div style={{ fontSize: isMobile ? '16px' : '20px', fontWeight: '800', color: RAIM_COLORS.DARK }}>
+                <div style={{ fontSize: '28px', fontWeight: '800', color: RAIM_COLORS.DARK }}>
                   {total}명
                 </div>
-                <div style={{ fontSize: isMobile ? '10px' : '11px', color: RAIM_COLORS.MUTED }}>
+                <div style={{ fontSize: '14px', color: RAIM_COLORS.MUTED }}>
                   Total
                 </div>
               </div>
             </div>
           </div>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               <div style={{
-                width: '20px',
-                height: '20px',
-                borderRadius: '4px',
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
                 backgroundColor: RAIM_COLORS.DARK,
                 flexShrink: 0
               }} />
               <div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: RAIM_COLORS.DARK }}>
+                <div style={{ fontSize: '18px', fontWeight: '600', color: RAIM_COLORS.DARK }}>
                   남성
                 </div>
-                <div style={{ fontSize: '12px', color: RAIM_COLORS.MUTED }}>
+                <div style={{ fontSize: '15px', color: RAIM_COLORS.MUTED }}>
                   {visitorStats.gender.male}명 ({malePercent}%)
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               <div style={{
-                width: '20px',
-                height: '20px',
-                borderRadius: '4px',
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
                 backgroundColor: RAIM_COLORS.MEDIUM,
                 flexShrink: 0
               }} />
               <div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: RAIM_COLORS.DARK }}>
+                <div style={{ fontSize: '18px', fontWeight: '600', color: RAIM_COLORS.DARK }}>
                   여성
                 </div>
-                <div style={{ fontSize: '12px', color: RAIM_COLORS.MUTED }}>
+                <div style={{ fontSize: '15px', color: RAIM_COLORS.MUTED }}>
                   {visitorStats.gender.female}명 ({femalePercent}%)
                 </div>
               </div>
@@ -499,11 +527,11 @@ export default function Dashboard({ onClose, onSave }) {
       <div style={styles.dashboardModal}>
         <div style={styles.dashboardHeader}>
           <h2 style={styles.dashboardTitle}>
-            <Settings size={isMobile ? 24 : 28} />
+            <Settings size={34} />
             관리자 대시보드
           </h2>
           <button style={styles.closeButton} onClick={onClose}>
-            <X size={isMobile ? 20 : 24} />
+            <X size={28} />
           </button>
         </div>
 
@@ -512,17 +540,17 @@ export default function Dashboard({ onClose, onSave }) {
           <div style={styles.section}>
             <h3 style={styles.sectionTitle}>
               <div style={styles.iconWrapper}>
-                <Users size={20} />
+                <Users size={24} />
               </div>
               오늘의 입장 현황
             </h3>
             <div style={styles.statsCard}>
-              <Calendar size={32} color="rgba(255,255,255,0.8)" style={{ marginBottom: '15px' }} />
+              <Calendar size={42} color="rgba(255,255,255,0.8)" style={{ marginBottom: '18px' }} />
               <div style={styles.statsNumber}>{todayCount.toLocaleString()}</div>
               <div style={styles.statsLabel}>오늘의 누적 입장객 수</div>
             </div>
             <div style={styles.infoText}>
-              현재 브라우저에 저장된 오늘의 데이터입니다. 전체 통계는 Google Sheets에 적재됩니다.  
+              오늘 등록된 모든 방문객 데이터는 Firebase에 저장됩니다.
             </div>
           </div>
 
@@ -530,16 +558,16 @@ export default function Dashboard({ onClose, onSave }) {
           <div style={styles.section}>
             <h3 style={styles.sectionTitle}>
               <div style={styles.iconWrapper}>
-                <BarChart3 size={20} />
+                <BarChart3 size={24} />
               </div>
               오늘의 통계 분석
             </h3>
             <AgeGroupChart />
-            <div style={{ marginTop: '16px' }}>
+            <div style={{ marginTop: '20px' }}>
               <GenderChart />
             </div>
             <div style={styles.infoText}>
-              오늘 등록된 방문객의 연령대와 성별 분포입니다.
+              오늘 등록된 방문객의 연령대와 성별 분포를 시각화합니다.
             </div>
           </div>
         </div>
@@ -548,7 +576,7 @@ export default function Dashboard({ onClose, onSave }) {
         <div style={styles.section}>
           <h3 style={styles.sectionTitle}>
             <div style={styles.iconWrapper}>
-              <Sliders size={20} />
+              <Sliders size={24} />
             </div>
             설정
           </h3>
@@ -557,7 +585,7 @@ export default function Dashboard({ onClose, onSave }) {
           <div style={styles.formGroup}>
             <label style={styles.formLabel}>관람실 선택</label>
             <div style={styles.selectWrapper}>
-              <MapPin size={20} color={RAIM_COLORS.MUTED} style={{position:'absolute', left:'15px', zIndex: 1}} />
+              <MapPin size={24} color={RAIM_COLORS.MUTED} style={{position:'absolute', left: '18px', top: '50%', transform: 'translateY(-50%)', zIndex: 1}} />
               <select 
                 value={selectedRoom}
                 onChange={(e) => setSelectedRoom(e.target.value)}
@@ -568,15 +596,20 @@ export default function Dashboard({ onClose, onSave }) {
                   <option key={room} value={room}>{room}</option>
                 ))}
               </select>
+              <ChevronDown 
+                size={24} 
+                color={RAIM_COLORS.MUTED} 
+                style={styles.selectIcon}
+              />
             </div>
             <div style={styles.infoText}>
-              데이터 전송 시 이 관람실 정보가 함께 전송됩니다.
+              데이터 저장 시 이 관람실 정보가 함께 저장됩니다.
             </div>
           </div>
           <div style={styles.formGroup}>
             <label style={styles.formLabel}>나이 보정값 ({ageCorrection > 0 ? '+' : ''}{ageCorrection}세)</label>
             <div style={styles.sliderContainer}>
-              <span style={{ fontSize: '12px', color: RAIM_COLORS.MUTED, minWidth: '25px' }}>-10</span>
+              <span style={{ fontSize: '15px', color: RAIM_COLORS.MUTED, minWidth: '30px' }}>-10</span>
               <input
                 type="range"
                 min="-10"
@@ -585,7 +618,7 @@ export default function Dashboard({ onClose, onSave }) {
                 onChange={(e) => setAgeCorrection(parseInt(e.target.value, 10))}
                 style={getSliderStyle()}
               />
-              <span style={{ fontSize: '12px', color: RAIM_COLORS.MUTED, minWidth: '25px' }}>+10</span>
+              <span style={{ fontSize: '15px', color: RAIM_COLORS.MUTED, minWidth: '30px' }}>+10</span>
               <div style={styles.sliderValue}>
                 {ageCorrection > 0 ? '+' : ''}{ageCorrection}
               </div>
@@ -601,7 +634,7 @@ export default function Dashboard({ onClose, onSave }) {
           style={styles.saveButton}
           onClick={handleSave}
         >
-          <Save size={18} />
+          <Save size={24} />
           설정 저장
         </button>
       </div>
