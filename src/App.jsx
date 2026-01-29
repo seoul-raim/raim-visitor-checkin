@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import * as faceapi from 'face-api.js';
 import logoImg from './assets/logo.png';
 import { useIsMobile } from './hooks/useIsMobile';
@@ -13,8 +14,10 @@ import CameraCard from './components/CameraCard';
 import VisitorList from './components/VisitorList';
 import Dashboard from './components/Dashboard';
 import ScanConfirmModal from './components/ScanConfirmModal';
+import LanguageToggle from './components/LanguageToggle';
 
 function App() {
+  const { t } = useTranslation();
   const [isAdminLocked, setIsAdminLocked] = useState(false);
   const [showRoomSetup, setShowRoomSetup] = useState(false);
 
@@ -510,7 +513,7 @@ function App() {
         onConfirm={handleScanConfirm}
         onEdit={handleScanEdit}
       />
-
+      
       <div style={styles.container}>
         <header style={styles.header}>
           <img 
@@ -520,7 +523,8 @@ function App() {
             onClick={handleLogoClick}
             title="로고를 3회 터치하여 관리자 대시보드 열기"
           />
-          <h2 style={styles.title}>입장 등록</h2>
+          <h2 style={styles.title}>{t('header.title')}</h2>
+          <LanguageToggle isMobile={isMobile} inline={true} />
         </header>
         
         <div style={styles.topRow}>
@@ -561,14 +565,14 @@ function App() {
               ...(visitors.length > 0 ? styles.submitButtonActive : styles.submitButtonDisabled),
               flex: 2
             }}>
-            {isSending ? "전송 중..." : `완료 (${visitors.length}명)`}
+            {isSending ? t('common.sending') : `${t('common.complete')} (${t('common.peopleCount', { count: visitors.length })})`}
           </button>
           
           <button 
             onClick={handleToggleMode}
             style={styles.modeSwitchButton}
           >
-            {isAIMode ? '수동 입력' : 'AI 인식'}
+            {isAIMode ? (t('dashboard.settings.manualMode') || '수동 입력') : (t('dashboard.settings.aiMode') || 'AI 인식')}
           </button>
         </div>
       </div>
@@ -611,9 +615,9 @@ const getStyles = (device) => {
       overflow: 'hidden' 
     }, 
     header: {
-      display: 'flex',
+      display: 'grid',
+      gridTemplateColumns: 'auto 1fr auto',
       alignItems: 'center',
-      justifyContent: 'space-between',
       gap: pick({ mobile: '12px', tabletA9: '16px', desktop: '18px' }),
       marginBottom: pick({ mobile: '10px', tabletA9: '16px', desktop: '18px' }),
       height: pick({ mobile: '60px', tabletA9: '90px', desktop: '100px' }),
@@ -622,13 +626,15 @@ const getStyles = (device) => {
       borderBottom: `2px solid ${RAIM_COLORS.BG}`
     },
     logoImage: { 
-      height: pick({ mobile: '60px', tabletA9: '100px', desktop: '100px' }), width: 'auto' 
+      height: pick({ mobile: '60px', tabletA9: '70px', desktop: '100px' }), width: 'auto' 
     },
     title: { 
       margin: 0, 
       fontSize: pick({ mobile: '20px', tabletA9: '26px', desktop: '30px' }), 
       color: RAIM_COLORS.DARK, 
-      fontWeight: '800' 
+      fontWeight: '800',
+      textAlign: 'center',
+      gridColumn: '2'
     },
     topRow: { 
       display: 'flex', 

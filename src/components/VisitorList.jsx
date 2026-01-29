@@ -1,4 +1,5 @@
 import { ClipboardList, User, X, Plus, Minus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { RAIM_COLORS } from '../constants';
 
@@ -124,8 +125,30 @@ const getStyles = (device) => {
 };
 
 export default function VisitorList({ visitors, onRemove, onAdd }) {
+  const { t } = useTranslation();
   const { device } = useIsMobile();
   const styles = getStyles(device);
+
+  // 한글 연령대를 번역 키로 매핑
+  const getAgeGroupKey = (ageGroup) => {
+    const mapping = {
+      '영유아': 'infant',
+      '영유아(0~7세)': 'infant',
+      '어린이': 'child',
+      '어린이(8~13세)': 'child',
+      '청소년': 'teen',
+      '청소년(14~19세)': 'teen',
+      '청년': 'youth',
+      '청년(20~34세)': 'youth',
+      '중년': 'middleAge',
+      '중년(35~59세)': 'middleAge',
+      '노년': 'senior',
+      '노년(60세 이상)': 'senior',
+      '장년': 'senior', // 레거시 지원
+      '장년(50세~)': 'senior' // 레거시 지원
+    };
+    return mapping[ageGroup] || 'youth';
+  };
 
   // 방문객을 그룹화하여 수량 계산
   const groupedVisitors = visitors.reduce((acc, visitor) => {
@@ -167,15 +190,15 @@ export default function VisitorList({ visitors, onRemove, onAdd }) {
       <div style={styles.cardHeaderRow}>
         <div style={styles.cardTitleWrapper}>
           <ClipboardList size={30} color={RAIM_COLORS.DARK} />
-          <h3 style={styles.cardTitle}>등록 명단</h3>
+          <h3 style={styles.cardTitle}>{t('visitorList.title')}</h3>
         </div>
-        <span style={styles.countBadge}>{visitors.length}명</span>
+        <span style={styles.countBadge}>{t('common.peopleCount', { count: visitors.length })}</span>
       </div>
       
       <div style={styles.listContainer}>
         {visitors.length === 0 ? (
           <div style={styles.emptyState}>
-            <span style={{fontSize:'22px'}}>명단이 없습니다.</span>
+            <span style={{fontSize:'22px'}}>{t('visitorList.emptyState')}</span>
           </div>
         ) : (
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -188,7 +211,7 @@ export default function VisitorList({ visitors, onRemove, onAdd }) {
                   
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={styles.listItemTitle}>
-                      {groupedVisitor.ageGroup}
+                      {t(`ageGroups.${getAgeGroupKey(groupedVisitor.ageGroup)}`)}
                       {groupedVisitor.count > 1 && (
                         <span style={{ 
                           fontSize: '22px', 
@@ -196,16 +219,16 @@ export default function VisitorList({ visitors, onRemove, onAdd }) {
                           fontWeight: '600',
                           marginLeft: '6px'
                         }}>
-                          ({groupedVisitor.count}명)
+                          ({t('common.peopleCount', { count: groupedVisitor.count })})
                         </span>
                       )}
                     </div>
                     <div style={styles.badgeContainer}>
                       <span style={styles.badgeNeutral}>
-                        {groupedVisitor.gender === 'male' ? '남성' : '여성'}
+                        {groupedVisitor.gender === 'male' ? t('common.male') : t('common.female')}
                       </span>
                       <span style={groupedVisitor.source === 'AI' ? styles.badgeAI : styles.badgeManual}>
-                        {groupedVisitor.source === 'AI' ? 'AI' : '수동'}
+                        {groupedVisitor.source === 'AI' ? t('visitorList.aiTag') : t('visitorList.manualTag')}
                       </span>
                     </div>
                   </div>

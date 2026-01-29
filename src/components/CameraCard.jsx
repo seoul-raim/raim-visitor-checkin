@@ -1,4 +1,5 @@
 import { ScanFace, ShieldCheck, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { RAIM_COLORS } from '../constants';
 
@@ -55,6 +56,7 @@ export default function CameraCard({
   isScanning, 
   onScan 
 }) {
+  const { t } = useTranslation();
   const { device } = useIsMobile();
   const styles = getStyles(device);
 
@@ -62,7 +64,7 @@ export default function CameraCard({
     <div style={styles.cameraCard}>
       <div style={styles.privacyBadge}>
         <ShieldCheck size={30} strokeWidth={2.5} />
-        <span>이미지는 저장되지 않습니다</span>
+        <span>{t('camera.privacyNotice')}</span>
       </div>
 
       <video ref={videoRef} autoPlay muted playsInline style={styles.video} />
@@ -85,7 +87,7 @@ export default function CameraCard({
           ) : (
             <>
               <ScanFace size={36} strokeWidth={2} />
-              <span>AI 스캔</span>
+              <span>{t('camera.scanButton')}</span>
             </>
           )}
         </button>

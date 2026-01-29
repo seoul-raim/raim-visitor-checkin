@@ -1,4 +1,5 @@
 import { AlertCircle, RefreshCw, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { RAIM_COLORS } from '../constants';
 
 const modalStyles = {
@@ -54,6 +55,8 @@ const modalStyles = {
 };
 
 export default function ErrorModal({ isOpen, onClose, onRetry, message, showRetry = true }) {
+  const { t } = useTranslation();
+  
   if (!isOpen) return null;
   
   return (
@@ -62,20 +65,20 @@ export default function ErrorModal({ isOpen, onClose, onRetry, message, showRetr
         <div style={modalStyles.iconCircle}>
           <AlertCircle size={40} color="#DC2626" />
         </div>
-        <h2 style={modalStyles.title}>전송 실패</h2>
+        <h2 style={modalStyles.title}>{t('errorModal.title')}</h2>
         <p style={modalStyles.message}>
-          {message || '데이터 전송에 실패했습니다.\n인터넷 연결을 확인해주세요.'}
+          {message || t('errorModal.defaultMessage')}
         </p>
         <div style={modalStyles.buttonRow}>
           {showRetry && (
             <button onClick={onRetry} style={modalStyles.retryButton}>
               <RefreshCw size={18} />
-              재시도
+              {t('common.retry')}
             </button>
           )}
           <button onClick={onClose} style={modalStyles.cancelButton}>
             <X size={18} />
-            닫기
+            {t('common.close')}
           </button>
         </div>
       </div>
