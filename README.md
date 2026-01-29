@@ -1,162 +1,163 @@
-# RAIM 방문자 등록 시스템
+# RAIM 방문자 체크인 시스템
 
-서울로봇인공지능과학관(RAIM)에서 사용하는 방문자 등록 시스템 프로토타입입니다. AI 얼굴 인식 기술을 활용하여 방문자의 연령대와 성별을 자동으로 감지하고, 수동 입력 기능도 제공합니다.
+서울로봇인공지능과학관(RAIM)의 지능형 방문자 관리 시스템입니다. AI 얼굴 인식 기술을 활용하여 방문자의 성별과 연령대를 자동으로 감지하고, Firebase를 통해 실시간 데이터를 수집·관리합니다.
 
 ## 주요 기능
 
-### 🤖 AI 얼굴 인식 등록
-- **자동 연령대 감지**: 얼굴 인식 AI를 통해 방문자의 연령대를 자동으로 분류
-  - 영유아 (0~6세)
-  - 어린이 (7~12세)
-  - 청소년 (13~19세)
-  - 청년 (20~39세)
-  - 중년 (40~49세)
-  - 장년 (50세~)
-- **성별 자동 감지**: 남성/여성 자동 구분
-- **다중 얼굴 인식**: 한 번에 여러 명의 방문자 등록 가능
+### 🎯 핵심 기능
+- **AI 얼굴 인식**: face-api.js를 활용한 실시간 성별/연령대 자동 감지
+- **수동 입력 모드**: 카메라 미사용 시 직접 입력 옵션
+- **다국어 지원**: 한국어/영어 실시간 전환 (i18next)
+- **실시간 통계**: 일일 방문자 현황 대시보드
+- **데이터 백업**: Firebase + Google Sheets 자동 백업 시스템
 
-### ✋ 수동 입력 등록
-- AI 인식이 어려운 경우를 위한 수동 입력 기능
-- 성별 및 연령대 직접 선택
-- AI 등록과 수동 등록 구분 표시
+### 🔐 보안 기능
+- 관리자 잠금 화면 (PIN 인증)
+- 관람실별 접근 제어
+- 로고 3번 탭으로 대시보드 진입
 
-### 📋 등록 관리
-- 실시간 방문자 명단 확인
-- 등록된 방문자 삭제 기능
-- 등록 완료 전 수정 가능
-
-### 🔒 관리자 기능
-- PIN 기반 관리자 잠금 화면
-- 시스템 보안 관리
-
-### 📊 데이터 전송
-- Google Apps Script를 통한 방문자 데이터 자동 전송
-- 등록 완료 후 성공 모달 표시
+### 📊 관리자 대시보드
+- 실시간 방문자 통계 (성별/연령대별 집계)
+- 시간대별 방문 현황
+- Excel 내보내기 (.xlsx)
+- 전송 대기 중인 데이터 일괄 전송
 
 ## 기술 스택
 
-- **Frontend**: React 19.2.0
-- **Build Tool**: Vite 7.2.4
-- **AI 라이브러리**: face-api.js 0.22.2
-  - SSD Mobilenet v1 (얼굴 감지)
-  - Face Landmark 68 (얼굴 특징점)
-  - Age & Gender Net (연령/성별 예측)
-- **UI 아이콘**: Lucide React 0.562.0
-- **스타일링**: 인라인 스타일 (반응형 디자인)
+### Frontend
+- **Framework**: React 19.2 + Vite 7
+- **AI/ML**: face-api.js 0.22.2
+- **UI**: Lucide React (아이콘)
+- **State Management**: React Hooks
+- **i18n**: react-i18next
 
-## 프로젝트 구조
+### Backend & Database
+- **Firebase Firestore**: 방문자 데이터 저장
+- **Google Apps Script**: 3시간마다 자동 백업 및 정리
+- **Google Sheets**: 데이터 영구 백업
 
-```
-src/
-├── components/          # React 컴포넌트
-│   ├── AdminLockScreen.jsx    # 관리자 잠금 화면
-│   ├── CameraCard.jsx          # 카메라/스캔 카드
-│   ├── ManualEntryCard.jsx    # 수동 입력 카드
-│   ├── SuccessModal.jsx       # 성공 모달
-│   └── VisitorList.jsx         # 방문자 목록
-├── hooks/              # 커스텀 훅
-│   └── useIsMobile.js          # 모바일 감지 훅
-├── utils/              # 유틸리티 함수
-│   └── ageConverter.js         # 연령대 변환 함수
-├── constants.js        # 상수 및 설정
-├── App.jsx             # 메인 앱 컴포넌트
-└── main.jsx            # 앱 진입점
+### 빌드 도구
+- Vite 7.2.4
+- ESLint 9.39
+
+## 시작하기
+
+### 사전 요구사항
+```bash
+Node.js >= 16.x
+npm >= 8.x
 ```
 
-## 설치 및 실행
+### 설치 및 실행
 
-### 필수 요구사항
-- Node.js 18 이상
-- npm 또는 yarn
+1. **저장소 클론**
+```bash
+git clone https://github.com/your-org/raim-visitor-checkin.git
+cd raim-visitor-checkin
+```
 
-### 설치
-
+2. **의존성 설치**
 ```bash
 npm install
 ```
 
-### 환경 변수 설정
+3. **환경 변수 설정**
 
-프로젝트 루트에 `.env` 파일을 생성하고 다음 변수를 설정하세요:
+프로젝트 루트에 `.env` 파일을 생성하고 Firebase 설정값을 입력합니다:
 
 ```env
-VITE_GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 VITE_ADMIN_PIN=0000
 ```
 
-- `VITE_GOOGLE_SCRIPT_URL`: Google Apps Script 웹 앱 URL
-- `VITE_ADMIN_PIN`: 관리자 잠금 해제 PIN (기본값: 0000)
+**Firebase 프로젝트 설정 방법:**
 
-### 개발 서버 실행
+1. [Firebase Console](https://console.firebase.google.com/) 접속
+2. 새 프로젝트 생성 또는 기존 프로젝트 선택
+3. 프로젝트 설정 > 일반 > 내 앱 섹션에서 웹 앱 추가
+4. 앱 등록 후 표시되는 `firebaseConfig` 객체의 값들을 `.env` 파일에 복사
+5. Firestore Database 생성:
+   - Build > Firestore Database 선택
+   - 데이터베이스 만들기 (테스트 모드로 시작)
+   - 보안 규칙 설정 (프로덕션 환경에서는 필수)
 
+**관리자 PIN 설정:**
+- `VITE_ADMIN_PIN`: 관리자 잠금 화면 비밀번호 (기본값: `0000`)
+- 프로덕션 환경에서는 반드시 변경하세요
+
+**보안 주의사항:**
+- `.env` 파일은 절대 Git에 커밋하지 마세요 (`.gitignore`에 이미 포함됨)
+- 프로덕션 환경에서는 Firebase 보안 규칙을 반드시 설정하세요
+- 관리자 PIN은 강력한 번호로 변경하세요 (숫자 4자리 이상 권장)
+- API 키는 공개 저장소에 노출되지 않도록 주의하세요
+
+4. **개발 서버 실행**
 ```bash
 npm run dev
 ```
+브라우저에서 `http://localhost:5173` 접속
 
-개발 서버가 실행되면 브라우저에서 `http://localhost:5173`으로 접속할 수 있습니다.
-
-### 프로덕션 빌드
-
+5. **프로덕션 빌드**
 ```bash
 npm run build
-```
-
-빌드된 파일은 `dist/` 폴더에 생성됩니다.
-
-### 빌드 미리보기
-
-```bash
 npm run preview
 ```
 
-## AI 모델 파일
+## 프로젝트 구조
 
-AI 얼굴 인식 기능을 사용하려면 `public/models/` 폴더에 다음 모델 파일들이 필요합니다:
+```
+raim-visitor-checkin/
+├── src/
+│   ├── components/          # React 컴포넌트
+│   │   ├── AdminLockScreen.jsx
+│   │   ├── CameraCard.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── ManualEntryCard.jsx
+│   │   └── VisitorList.jsx
+│   ├── hooks/               # 커스텀 훅
+│   │   └── useIsMobile.js
+│   ├── i18n/                # 다국어 설정
+│   │   ├── translations/
+│   │   │   ├── en.json
+│   │   │   └── ko.json
+│   │   └── i18n.js
+│   ├── utils/               # 유틸리티 함수
+│   │   └── ageConverter.js
+│   ├── App.jsx              # 메인 앱 컴포넌트
+│   ├── constants.js         # 상수 정의
+│   ├── firebase.js          # Firebase 설정
+│   └── main.jsx             # 앱 진입점
+├── public/
+│   └── models/              # face-api.js AI 모델 (50MB+)
+├── docs/                    # 프로젝트 문서
+│   ├── ARCHITECTURE.md
+│   ├── FEATURES.md
+│   ├── MAINTENANCE_GUIDE.md
+│   ├── REQUIREMENTS.md
+│   └── SETUP_GUIDE.md
+└── package.json
+```
 
-- `ssd_mobilenetv1_model-weights_manifest.json`
-- `ssd_mobilenetv1_model-shard1`
-- `ssd_mobilenetv1_model-shard2`
-- `face_landmark_68_model-weights_manifest.json`
-- `face_landmark_68_model-shard1`
-- `age_gender_model-weights_manifest.json`
-- `age_gender_model-shard1`
+## 사용 방법
 
-모델 파일은 face-api.js 공식 저장소에서 다운로드할 수 있습니다.
+1. **초기 설정**: 관리자 잠금 화면에서 관람실 선택 및 PIN 입력
+2. **체크인 모드 선택**:
+   - AI 모드: 카메라 앞에 서면 자동 감지
+   - 수동 모드: 성별/연령대 직접 선택
+3. **데이터 전송**: "완료" 버튼으로 Firebase에 저장
+4. **통계 확인**: 로고 3번 탭 → 대시보드 진입
 
-## 주요 기능 설명
+## 상세 문서
 
-### AI 스캔 프로세스
-1. 카메라 권한 요청
-2. AI 모델 로딩 (최초 1회)
-3. "AI 스캔" 버튼 클릭
-4. 실시간 얼굴 감지 및 분석
-5. 연령대/성별 자동 분류
-6. 방문자 목록에 자동 추가
-
-### 수동 입력 프로세스
-1. 성별 선택 (남성/여성)
-2. 연령대 선택 (6개 그룹 중 선택)
-3. "추가하기" 버튼 클릭
-4. 방문자 목록에 추가
-
-### 데이터 전송
-- 등록된 방문자 정보를 Google Apps Script로 전송
-- 전송 형식: `{ visitors: [{ ageGroup, gender, source }] }`
-- 전송 성공 시 성공 모달 표시
-
-## 보안 및 개인정보
-
-- **이미지 저장 없음**: 카메라로 촬영한 이미지는 저장되지 않으며, 실시간 처리만 수행됩니다.
-- **로컬 처리**: AI 모델은 클라이언트 측에서 실행되며, 서버로 이미지가 전송되지 않습니다.
-- **관리자 잠금**: PIN 기반 잠금 기능으로 무단 접근을 방지합니다.
-
-## 반응형 디자인
-
-- 데스크톱 및 태블릿 환경 최적화
-- 모바일 환경 지원 (768px 이하 자동 감지)
-- 터치 친화적 UI
-
-## 라이선스
-
-이 프로젝트는 서울로봇인공지능과학관(RAIM)의 내부 사용을 위한 프로젝트입니다.
+- [📋 기능 명세서](docs/FEATURES.md)
+- [🏗️ 시스템 아키텍처](docs/ARCHITECTURE.md)
+- [⚙️ 설치 가이드](docs/SETUP_GUIDE.md)
+- [🔧 유지보수 가이드](docs/MAINTENANCE_GUIDE.md)
+- [📝 요구사항 명세서](docs/REQUIREMENTS.md)
 
