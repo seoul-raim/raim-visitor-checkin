@@ -1,4 +1,5 @@
 import { UserPlus, ArrowDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ageGroups, RAIM_COLORS } from '../constants';
 
@@ -106,6 +107,7 @@ export default function ManualEntryCard({
   setManualGroup, 
   onAdd 
 }) {
+  const { t } = useTranslation();
   const { device } = useIsMobile();
   const styles = getStyles(device);
 
@@ -114,7 +116,7 @@ export default function ManualEntryCard({
       <div style={styles.cardHeaderRow}>
         <div style={styles.cardTitleWrapper}>
           <UserPlus size={30} color={RAIM_COLORS.DARK} />
-          <h3 style={styles.cardTitle}>수동 선택</h3>
+          <h3 style={styles.cardTitle}>{t('manualEntry.title')}</h3>
         </div>
       </div>
       
@@ -127,7 +129,7 @@ export default function ManualEntryCard({
             }}
             onClick={() => setManualGender('male')}
           >
-            남성
+            {t('common.male')}
           </button>
           <button 
             style={{ 
@@ -136,7 +138,7 @@ export default function ManualEntryCard({
             }}
             onClick={() => setManualGender('female')}
           >
-            여성
+            {t('common.female')}
           </button>
         </div>
       </div>
@@ -152,15 +154,15 @@ export default function ManualEntryCard({
                 ...(manualGroup === group.label ? styles.ageButtonActive : {})
               }}
             >
-              <span style={styles.ageLabel}>{group.label}</span>
-              <span style={styles.ageSub}>{group.sub}</span>
+              <span style={styles.ageLabel}>{t(`ageGroups.${group.key}`)}</span>
+              <span style={styles.ageSub}>{t(`ageGroups.${group.key}Sub`)}</span>
             </button>
           ))}
         </div>
       </div>
 
       <button onClick={onAdd} style={styles.addButton}>
-        <span>추가하기</span>
+        <span>{t('manualEntry.addButton')}</span>
         <ArrowDown size={24} strokeWidth={3} />
       </button>
     </div>

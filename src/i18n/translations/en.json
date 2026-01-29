@@ -1,0 +1,89 @@
+{
+  "header": {
+    "title": "Visitor Registration"
+  },
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "close": "Close",
+    "retry": "Retry",
+    "save": "Save",
+    "complete": "Complete",
+    "sending": "Sending...",
+    "male": "Male",
+    "female": "Female",
+    "people": "",
+    "peopleCount": "{{count}}"
+  },
+  "ageGroups": {
+    "infant": "Infant",
+    "infantSub": "0~7 years",
+    "child": "Child",
+    "childSub": "8~13 years",
+    "teen": "Teen",
+    "teenSub": "14~19 years",
+    "youth": "Youth",
+    "youthSub": "20~34 years",
+    "middleAge": "Middle Age",
+    "middleAgeSub": "35~59 years",
+    "senior": "Senior",
+    "seniorSub": "60+ years"
+  },
+  "camera": {
+    "privacyNotice": "Images are not stored",
+    "scanButton": "AI Scan",
+    "loading": "Loading..."
+  },
+  "manualEntry": {
+    "title": "Manual Entry",
+    "gender": "Gender",
+    "ageGroup": "Age Group",
+    "addButton": "Add"
+  },
+  "visitorList": {
+    "title": "Registration List",
+    "emptyState": "No visitors registered",
+    "aiTag": "AI",
+    "manualTag": "Manual"
+  },
+  "scanConfirm": {
+    "title": "Confirm Scan Results",
+    "detected": "{{count}} detected",
+    "editInfo": "If the information is incorrect, you can edit it",
+    "confirmButton": "Confirm",
+    "cancelButton": "Edit"
+  },
+  "successModal": {
+    "title": "Registration Complete!",
+    "message": "Total {{count}} visitor(s) registered.",
+    "enjoyMessage": "Enjoy your visit!"
+  },
+  "errorModal": {
+    "title": "Transmission Failed",
+    "defaultMessage": "Data transmission failed.\nPlease check your internet connection."
+  },
+  "dashboard": {
+    "title": "Admin Dashboard",
+    "stats": {
+      "title": "Real-time Statistics",
+      "totalVisitors": "Total Visitors",
+      "todayVisitors": "Today's Visitors"
+    },
+    "rooms": {
+      "title": "Room Settings",
+      "label": "Current Room",
+      "placeholder": "Select a room"
+    },
+    "ageStats": {
+      "title": "Age Group Statistics (Today)"
+    },
+    "genderStats": {
+      "title": "Gender Statistics (Today)"
+    },
+    "settings": {
+      "title": "Basic Settings",
+      "aiMode": "AI Scan Mode",
+      "manualMode": "Manual Entry Mode"
+    }
+  }
+}

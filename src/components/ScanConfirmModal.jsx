@@ -1,4 +1,5 @@
 import { X, Check, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { RAIM_COLORS } from '../constants';
 
@@ -178,8 +179,30 @@ export default function ScanConfirmModal({
   onConfirm, 
   onEdit 
 }) {
+  const { t } = useTranslation();
   const { device } = useIsMobile();
   const styles = getStyles(device);
+
+  // 한글 연령대를 번역 키로 매핑
+  const getAgeGroupKey = (ageGroup) => {
+    const mapping = {
+      '영유아': 'infant',
+      '영유아(0~7세)': 'infant',
+      '어린이': 'child',
+      '어린이(8~13세)': 'child',
+      '청소년': 'teen',
+      '청소년(14~19세)': 'teen',
+      '청년': 'youth',
+      '청년(20~34세)': 'youth',
+      '중년': 'middleAge',
+      '중년(35~59세)': 'middleAge',
+      '노년': 'senior',
+      '노년(60세 이상)': 'senior',
+      '장년': 'senior',
+      '장년(50세~)': 'senior'
+    };
+    return mapping[ageGroup] || 'youth';
+  };
 
   if (!isOpen) return null;
 
@@ -189,7 +212,7 @@ export default function ScanConfirmModal({
         <div style={styles.modalHeader}>
           <h3 style={styles.modalTitle}>
             <AlertCircle size={28} color={RAIM_COLORS.MEDIUM} />
-            스캔 결과 확인
+            {t('scanConfirm.title')}
           </h3>
           <button 
             style={styles.closeButton}
@@ -201,23 +224,23 @@ export default function ScanConfirmModal({
 
         <div style={styles.alertMessage}>
           <AlertCircle size={20} />
-          <span>AI가 인식한 방문객 정보를 확인해주세요. 수정이 필요하면 '수정' 버튼을 눌러주세요.</span>
+          <span>{t('scanConfirm.editInfo')}</span>
         </div>
 
         <div style={styles.visitorList}>
           {scannedVisitors.map((visitor, index) => (
             <div key={visitor.id} style={styles.visitorItem}>
               <div style={styles.visitorAvatar}>
-                {visitor.gender === 'male' ? '남' : '여'}
+                {visitor.gender === 'male' ? t('common.male').charAt(0) : t('common.female').charAt(0)}
               </div>
               <div style={styles.visitorInfo}>
-                <div style={styles.visitorAgeGroup}>{visitor.ageGroup}</div>
+                <div style={styles.visitorAgeGroup}>{t(`ageGroups.${getAgeGroupKey(visitor.ageGroup)}`)}</div>
                 <div style={styles.visitorBadges}>
                   <span style={{...styles.badge, ...styles.badgeGender}}>
-                    {visitor.gender === 'male' ? '남성' : '여성'}
+                    {visitor.gender === 'male' ? t('common.male') : t('common.female')}
                   </span>
                   <span style={{...styles.badge, ...styles.badgeSource}}>
-                    AI
+                    {t('visitorList.aiTag')}
                   </span>
                 </div>
               </div>
@@ -231,14 +254,14 @@ export default function ScanConfirmModal({
             onClick={onConfirm}
           >
             <Check size={22} />
-            등록 완료
+            {t('scanConfirm.confirmButton')}
           </button>
           <button 
             style={styles.editButton}
             onClick={onEdit}
           >
             <AlertCircle size={22} />
-            수정
+            {t('scanConfirm.cancelButton')}
           </button>
         </div>
       </div>

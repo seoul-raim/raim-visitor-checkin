@@ -1,4 +1,5 @@
 import { CheckCircle2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { RAIM_COLORS } from '../constants';
 
 const modalStyles = {
@@ -33,6 +34,8 @@ const modalStyles = {
 };
 
 export default function SuccessModal({ isOpen, onClose, count }) {
+  const { t } = useTranslation();
+  
   if (!isOpen) return null;
   return (
     <div style={modalStyles.overlay}>
@@ -40,12 +43,12 @@ export default function SuccessModal({ isOpen, onClose, count }) {
         <div style={modalStyles.iconCircle}>
           <CheckCircle2 size={40} color="white" />
         </div>
-        <h2 style={modalStyles.title}>등록 완료!</h2>
+        <h2 style={modalStyles.title}>{t('successModal.title')}</h2>
         <p style={modalStyles.message}>
-          총 <span style={{color: RAIM_COLORS.DARK, fontWeight:'bold'}}>{count}명</span> 등록되었습니다.<br/>
-          즐거운 관람 되세요!
+          {t('successModal.message', { count })}<br/>
+          {t('successModal.enjoyMessage')}
         </p>
-        <button onClick={onClose} style={modalStyles.button}>확인</button>
+        <button onClick={onClose} style={modalStyles.button}>{t('common.confirm')}</button>
       </div>
     </div>
   );
