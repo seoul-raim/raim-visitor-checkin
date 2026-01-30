@@ -38,7 +38,7 @@ function App() {
   const [scannedVisitors, setScannedVisitors] = useState([]);
 
   const [manualGender, setManualGender] = useState('male');
-  const [manualGroup, setManualGroup] = useState('청년');
+  const [manualGroup, setManualGroup] = useState('유아');
   const [isAIMode, setIsAIMode] = useState(true);
 
   // 로고 클릭 추적 (3회 클릭으로 대시보드 열기)
@@ -378,8 +378,14 @@ function App() {
     setIsAIMode((prev) => !prev);
   };
 
-  const addManualVisitor = () => {
-    const newVisitor = {
+  const addManualVisitor = (visitorData) => {
+    // 이벤트 객체가 전달된 경우 무시
+    const isValidVisitorData = visitorData && 
+      typeof visitorData === 'object' && 
+      !visitorData.nativeEvent && 
+      (visitorData.ageGroup || visitorData.gender);
+    
+    const newVisitor = isValidVisitorData ? visitorData : {
       id: Date.now() + Math.random(),
       ageGroup: manualGroup,
       gender: manualGender,

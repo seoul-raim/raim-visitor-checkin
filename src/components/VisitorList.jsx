@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { ClipboardList, User, X, Plus, Minus, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -148,38 +149,40 @@ export default function VisitorList({ visitors, onRemove, onAdd, onReset }) {
   // 한글 연령대를 번역 키로 매핑
   const getAgeGroupKey = (ageGroup) => {
     const mapping = {
-      '영유아': 'infant',
-      '영유아(0~7세)': 'infant',
+      '유아': 'infant',
+      '유아(0~6세)': 'infant',
       '어린이': 'child',
-      '어린이(8~13세)': 'child',
+      '어린이(7~12세)': 'child',
       '청소년': 'teen',
-      '청소년(14~19세)': 'teen',
+      '청소년(13~19세)': 'teen',
       '청년': 'youth',
-      '청년(20~34세)': 'youth',
+      '청년(20~39세)': 'youth',
       '중년': 'middleAge',
-      '중년(35~59세)': 'middleAge',
+      '중년(40~64세)': 'middleAge',
       '노년': 'senior',
-      '노년(60세 이상)': 'senior',
-      '장년': 'senior', // 레거시 지원
-      '장년(50세~)': 'senior' // 레거시 지원
+      '노년(65세 이상)': 'senior',
+      '영유아': 'infant', // 레거시 지원
+      '장년': 'senior' // 레거시 지원
     };
     return mapping[ageGroup] || 'youth';
   };
 
-  // 방문객을 그룹화하여 수량 계산
-  const groupedVisitors = visitors.reduce((acc, visitor) => {
-    const key = `${visitor.ageGroup}-${visitor.gender}-${visitor.source}`;
-    if (!acc[key]) {
-      acc[key] = {
-        ...visitor,
-        count: 0,
-        ids: []
-      };
-    }
-    acc[key].count++;
-    acc[key].ids.push(visitor.id);
-    return acc;
-  }, {});
+  // 방문객을 그룹화하여 수량 계산 (메모이제이션으로 성능 최적화)
+  const groupedVisitors = useMemo(() => {
+    return visitors.reduce((acc, visitor) => {
+      const key = `${visitor.ageGroup}-${visitor.gender}-${visitor.source}`;
+      if (!acc[key]) {
+        acc[key] = {
+          ...visitor,
+          count: 0,
+          ids: []
+        };
+      }
+      acc[key].count++;
+      acc[key].ids.push(visitor.id);
+      return acc;
+    }, {});
+  }, [visitors]);
 
   const handleQuantityChange = (groupedVisitor, delta) => {
     const newCount = groupedVisitor.count + delta;
@@ -194,6 +197,7 @@ export default function VisitorList({ visitors, onRemove, onAdd, onReset }) {
         gender: groupedVisitor.gender,
         source: groupedVisitor.source
       };
+      // onAdd에 visitor 객체를 전달
       onAdd(newVisitor);
     } else {
       // 수량 감소 - 하나만 삭제

@@ -161,7 +161,7 @@ export default function ManualEntryCard({
         </div>
       </div>
 
-      <button onClick={onAdd} style={styles.addButton}>
+      <button onClick={() => onAdd()} style={styles.addButton}>
         <span>{t('manualEntry.addButton')}</span>
         <ArrowDown size={24} strokeWidth={3} />
       </button>
