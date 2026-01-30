@@ -12,7 +12,7 @@ const getStyles = (isMobile, inline) => ({
     alignItems: 'center',
     gap: '12px',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    padding: isMobile ? '12px 20px' : '14px 22px',
+    padding: isMobile ? '12px 10px' : '14px 22px',
     borderRadius: '32px',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
     border: `1px solid ${RAIM_COLORS.BG}`,
@@ -21,7 +21,7 @@ const getStyles = (isMobile, inline) => ({
     backdropFilter: 'blur(10px)'
   },
   languageText: {
-    fontSize: isMobile ? '20px' : '24px',
+    fontSize: isMobile ? '15px' : '24px',
     fontWeight: '600',
     color: RAIM_COLORS.DARK,
     userSelect: 'none'
@@ -51,7 +51,7 @@ export default function LanguageToggle({ isMobile = false, inline = false }) {
         e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
       }}
     >
-      <Languages size={28} color={RAIM_COLORS.DARK} />
+      <Languages size={15} color={RAIM_COLORS.DARK} />
       <span style={styles.languageText}>
         {i18n.language === 'ko' ? 'EN' : '한글'}
       </span>
