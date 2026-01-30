@@ -16,18 +16,18 @@
     "peopleCount": "{{count}}명"
   },
   "ageGroups": {
-    "infant": "영유아",
-    "infantSub": "0~7세",
+    "infant": "유아",
+    "infantSub": "0~6세",
     "child": "어린이",
-    "childSub": "8~13세",
+    "childSub": "7~12세",
     "teen": "청소년",
-    "teenSub": "14~19세",
+    "teenSub": "13~19세",
     "youth": "청년",
-    "youthSub": "20~34세",
+    "youthSub": "20~39세",
     "middleAge": "중년",
-    "middleAgeSub": "35~59세",
+    "middleAgeSub": "40~64세",
     "senior": "노년",
-    "seniorSub": "60세 이상"
+    "seniorSub": "65세 이상"
   },
   "camera": {
     "privacyNotice": "이미지는 저장되지 않습니다",

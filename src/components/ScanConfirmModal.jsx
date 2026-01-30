@@ -186,20 +186,20 @@ export default function ScanConfirmModal({
   // 한글 연령대를 번역 키로 매핑
   const getAgeGroupKey = (ageGroup) => {
     const mapping = {
-      '영유아': 'infant',
-      '영유아(0~7세)': 'infant',
+      '유아': 'infant',
+      '유아(0~6세)': 'infant',
       '어린이': 'child',
-      '어린이(8~13세)': 'child',
+      '어린이(7~12세)': 'child',
       '청소년': 'teen',
-      '청소년(14~19세)': 'teen',
+      '청소년(13~19세)': 'teen',
       '청년': 'youth',
-      '청년(20~34세)': 'youth',
+      '청년(20~39세)': 'youth',
       '중년': 'middleAge',
-      '중년(35~59세)': 'middleAge',
+      '중년(40~64세)': 'middleAge',
       '노년': 'senior',
-      '노년(60세 이상)': 'senior',
-      '장년': 'senior',
-      '장년(50세~)': 'senior'
+      '노년(65세 이상)': 'senior',
+      '영유아': 'infant', // 레거시 지원
+      '장년': 'senior' // 레거시 지원
     };
     return mapping[ageGroup] || 'youth';
   };

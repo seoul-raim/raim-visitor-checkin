@@ -14,23 +14,24 @@ export const RAIM_COLORS = {
 };
 
 export const ageGroups = [
-  { label: "영유아", sub: "0~7세", key: "infant" },
-  { label: "어린이", sub: "8~13세", key: "child" },
-  { label: "청소년", sub: "14~19세", key: "teen" },
-  { label: "청년", sub: "20~34세", key: "youth" },
-  { label: "중년", sub: "35~59세", key: "middleAge" },
-  { label: "노년", sub: "60세 이상", key: "senior" }
+  { label: "유아", sub: "0~6세", key: "infant" },
+  { label: "어린이", sub: "7~12세", key: "child" },
+  { label: "청소년", sub: "13~19세", key: "teen" },
+  { label: "청년", sub: "20~39세", key: "youth" },
+  { label: "중년", sub: "40~64세", key: "middleAge" },
+  { label: "노년", sub: "65세 이상", key: "senior" }
 ];
 
 // 나이 그룹 라벨 매핑 (최적화: 매번 문자열 비교 대신 맵 사용)
 export const AGE_GROUP_LABELS = {
-  '영유아': '영유아(0~7세)',
-  '어린이': '어린이(8~13세)',
-  '청소년': '청소년(14~19세)',
-  '청년': '청년(20~34세)',
-  '중년': '중년(35~59세)',
-  '노년': '노년(60세 이상)',
-  '장년': '노년(60세 이상)' // 레거시 지원
+  '유아': '유아(0~6세)',
+  '어린이': '어린이(7~12세)',
+  '청소년': '청소년(13~19세)',
+  '청년': '청년(20~39세)',
+  '중년': '중년(40~64세)',
+  '노년': '노년(65세 이상)',
+  '영유아': '유아(0~6세)', // 레거시 지원
+  '장년': '노년(65세 이상)' // 레거시 지원
 };
 
 export const roomLocations = [

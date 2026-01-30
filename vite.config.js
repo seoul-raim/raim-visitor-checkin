@@ -28,8 +28,9 @@ export default defineConfig({
     exclude: []
   },
   esbuild: {
-    // esbuild 최적화 옵션
-    drop: ['console', 'debugger'], // console.log 제거
+    // esbuild 최적화 옵션 (에러 디버깅을 위해 console.error와 console.warn은 유지)
+    drop: ['debugger'],
+    pure: ['console.log', 'console.info', 'console.debug'],
     legalComments: 'none'
   }
 })

@@ -16,18 +16,18 @@
     "peopleCount": "{{count}}"
   },
   "ageGroups": {
-    "infant": "Infant",
-    "infantSub": "0~7 years",
+    "infant": "Toddler",
+    "infantSub": "0~6 years",
     "child": "Child",
-    "childSub": "8~13 years",
+    "childSub": "7~12 years",
     "teen": "Teen",
-    "teenSub": "14~19 years",
+    "teenSub": "13~19 years",
     "youth": "Youth",
-    "youthSub": "20~34 years",
+    "youthSub": "20~39 years",
     "middleAge": "Middle Age",
-    "middleAgeSub": "35~59 years",
+    "middleAgeSub": "40~64 years",
     "senior": "Senior",
-    "seniorSub": "60+ years"
+    "seniorSub": "65+ years"
   },
   "camera": {
     "privacyNotice": "Images are not stored",
