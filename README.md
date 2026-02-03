@@ -33,20 +33,21 @@
 ## 기술 스택
 
 ### Frontend
-- **Framework**: React 19.2 + Vite 7
+- **Framework**: React 19.2.0 + Vite 7.2.4
 - **AI/ML**: face-api.js 0.22.2
-- **UI**: Lucide React (아이콘)
+- **UI**: Lucide React 0.562.0 (아이콘)
 - **State Management**: React Hooks
-- **i18n**: react-i18next
+- **i18n**: i18next 25.8.0 + react-i18next 16.5.4
+- **Data Export**: xlsx 0.18.5
 
 ### Backend & Database
-- **Firebase Firestore**: 방문자 데이터 저장
+- **Firebase**: 12.8.0 (Firestore 방문자 데이터 저장)
 - **Google Apps Script**: 3시간마다 자동 백업 및 정리 (설치 가이드: `public/script.txt` 참조)
 - **Google Sheets**: 데이터 영구 백업
 
 ### 빌드 도구
 - Vite 7.2.4
-- ESLint 9.39
+- ESLint 9.39.1
 
 ## 시작하기
 
@@ -123,22 +124,26 @@ npm run preview
 raim-visitor-checkin/
 ├── src/
 │   ├── components/          # React 컴포넌트
-│   │   ├── AdminLockScreen.jsx
-│   │   ├── CameraCard.jsx
-│   │   ├── Dashboard.jsx
-│   │   ├── ManualEntryCard.jsx
-│   │   └── VisitorList.jsx
+│   │   ├── AdminLockScreen.jsx    # 관리자 PIN 인증 화면
+│   │   ├── CameraCard.jsx         # AI 얼굴 인식 카메라
+│   │   ├── Dashboard.jsx          # 통계 대시보드
+│   │   ├── ErrorModal.jsx         # 오류 알림 모달
+│   │   ├── LanguageToggle.jsx     # 언어 전환 버튼
+│   │   ├── ManualEntryCard.jsx    # 수동 입력 폼
+│   │   ├── ScanConfirmModal.jsx   # AI 스캔 확인 모달
+│   │   ├── SuccessModal.jsx       # 완료 알림 모달
+│   │   └── VisitorList.jsx        # 방문자 목록 및 편집
 │   ├── hooks/               # 커스텀 훅
-│   │   └── useIsMobile.js
+│   │   └── useIsMobile.js         # 모바일 감지
 │   ├── i18n/                # 다국어 설정
 │   │   ├── translations/
-│   │   │   ├── en.json
-│   │   │   └── ko.json
-│   │   └── i18n.js
+│   │   │   ├── en.json            # 영어 번역
+│   │   │   └── ko.json            # 한국어 번역
+│   │   └── i18n.js                # i18next 설정
 │   ├── utils/               # 유틸리티 함수
-│   │   └── ageConverter.js
+│   │   └── ageConverter.js        # 연령대 변환 로직
 │   ├── App.jsx              # 메인 앱 컴포넌트
-│   ├── constants.js         # 상수 정의
+│   ├── constants.js         # 상수 정의 (관람실, 연령대)
 │   ├── firebase.js          # Firebase 설정
 │   └── main.jsx             # 앱 진입점
 ├── public/
