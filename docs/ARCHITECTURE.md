@@ -244,12 +244,11 @@ erDiagram
         string gender "성별: 남성/여성"
         string ageGroup "연령대: 10대~60대+"
         string source "입력방식: 카메라/수동"
-        string location "위치/출입구"
+        string location "위치"
     }
     
     SHEETS_BACKUP {
         string timestamp "백업 타임스탬프"
-        string date "날짜"
         string gender "성별"
         string ageGroup "연령대"
         string source "입력방식"
