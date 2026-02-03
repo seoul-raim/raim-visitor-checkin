@@ -38,7 +38,6 @@
 - **UI**: Lucide React 0.562.0 (아이콘)
 - **State Management**: React Hooks
 - **i18n**: i18next 25.8.0 + react-i18next 16.5.4
-- **Data Export**: xlsx 0.18.5
 
 ### Backend & Database
 - **Firebase**: 12.8.0 (Firestore 방문자 데이터 저장)
