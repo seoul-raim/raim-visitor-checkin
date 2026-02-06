@@ -130,14 +130,14 @@ raim-visitor-checkin/
 │   ├── firebase.js          # Firebase 설정
 │   └── main.jsx             # 앱 진입점
 ├── public/
-│   ├── models/              # face-api.js AI 모델 (50MB+)
-│   └── script.txt           # Google Apps Script 백업 코드
+│   └── models/              # face-api.js AI 모델 (50MB+)
 ├── docs/                    # 프로젝트 문서
 │   ├── ARCHITECTURE.md
 │   ├── FEATURES.md
 │   ├── MAINTENANCE_GUIDE.md
 │   ├── REQUIREMENTS.md
 │   └── SETUP_GUIDE.md
+│   └── script.txt           # Google Apps Script 백업 코드
 └── package.json
 ```
 
