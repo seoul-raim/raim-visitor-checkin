@@ -14,27 +14,24 @@
 
 ### 🔐 보안 기능
 - 관리자 잠금 화면 (PIN 인증)
-  - 기본 관람실 목록에서만 선택 가능
-  - 커스텀 관람실은 대시보드에서 설정
+  - Firebase에서 관리하는 관람실 목록에서 선택
+  - 관람실 추가/삭제는 대시보드에서 가능
 - 로고 3번 탭으로 대시보드 진입
 
 ### 📊 관리자 대시보드
+- 로고 3번 탭으로 진입 
 - localStorage 기반 일일 통계 (관람실별 필터링)
 - 오늘의 방문자 집계 (성별/연령대별)
 - 연령대 분포 막대 차트
 - 성별 분포 도넛 차트
-- 관람실 설정:
-  - 기본 관람실 목록에서 선택
-  - 커스텀 관람실 직접 입력 (대시보드에서만 가능)
+- 관람실 추가/삭제 가능
 - 나이 보정값 조절 (-10 ~ +10)
 - **수동 백업 및 삭제**:
   - Firebase Firestore의 모든 데이터를 Google Sheets로 즉시 백업
-  - 백업 완료 후 Firestore 데이터 자동 삭제 (취소 불가)
+  - 백업 완료 후 Firestore 데이터 자동 삭제
   - 2단계 확인 모달로 실수 방지
   - 자동 재시도 메커니즘 (최대 3회 시도)
-  - 완료 시간: 1-3분 (데이터량에 따라)
   - Google Apps Script와 연동 (GET 요청, CORS 안전)
-- 로고 3번 탭으로 진입 (다국어 미지원)
 
 ## 기술 스택
 
@@ -106,15 +103,21 @@ npm run preview
 raim-visitor-checkin/
 ├── src/
 │   ├── components/          # React 컴포넌트
-│   │   ├── AdminLockScreen.jsx    # 관리자 PIN 인증 화면
-│   │   ├── CameraCard.jsx         # AI 얼굴 인식 카메라
-│   │   ├── Dashboard.jsx          # 통계 대시보드
-│   │   ├── ErrorModal.jsx         # 오류 알림 모달
-│   │   ├── LanguageToggle.jsx     # 언어 전환 버튼
-│   │   ├── ManualEntryCard.jsx    # 수동 입력 폼
-│   │   ├── ScanConfirmModal.jsx   # AI 스캔 확인 모달
-│   │   ├── SuccessModal.jsx       # 완료 알림 모달
-│   │   └── VisitorList.jsx        # 방문자 목록 및 편집
+│   │   ├── AdminLockScreen.jsx         # 관리자 PIN 인증 화면
+│   │   ├── CameraCard.jsx              # AI 얼굴 인식 카메라
+│   │   ├── Dashboard.jsx               # 관리자 대시보드
+│   │   ├── LanguageToggle.jsx          # 언어 전환 버튼
+│   │   ├── ManualEntryCard.jsx         # 수동 입력 폼
+│   │   ├── VisitorList.jsx             # 방문자 목록 및 편집
+│   │   ├── modals/                     # 모달 컴포넌트
+│   │   │   ├── ErrorModal.jsx          # 오류 알림 모달
+│   │   │   ├── SuccessModal.jsx        # 완료 알림 모달
+│   │   │   └── ScanConfirmModal.jsx    # AI 스캔 확인 모달
+│   │   └── dashboard/                  # 대시보드 관련 컴포넌트
+│   │       ├── AgeGroupChart.jsx       # 연령대 분포 차트
+│   │       ├── GenderChart.jsx         # 성별 분포 차트
+│   │       ├── BackupSection.jsx       # 백업 섹션
+│   │       └── RoomManagementModal.jsx # 관람실 관리 모달
 │   ├── hooks/               # 커스텀 훅
 │   │   └── useIsMobile.js         # 모바일 감지
 │   ├── i18n/                # 다국어 설정
@@ -123,9 +126,10 @@ raim-visitor-checkin/
 │   │   │   └── ko.json            # 한국어 번역
 │   │   └── i18n.js                # i18next 설정
 │   ├── utils/               # 유틸리티 함수
-│   │   └── ageConverter.js        # 연령대 변환 로직
+│   │   ├── ageConverter.js        # 연령대 변환 로직
+│   │   └── idGenerator.js         # 고유 ID 생성 함수
 │   ├── App.jsx              # 메인 앱 컴포넌트
-│   ├── constants.js         # 상수 정의 (관람실, 연령대)
+│   ├── constants.js         # 상수 정의 (연령대, 매핑)
 │   ├── firebase.js          # Firebase 설정
 │   └── main.jsx             # 앱 진입점
 ├── public/
@@ -135,7 +139,6 @@ raim-visitor-checkin/
 │   ├── FEATURES.md
 │   ├── MAINTENANCE_GUIDE.md
 │   ├── REQUIREMENTS.md
-│   └── SETUP_GUIDE.md
 │   └── script.txt           # Google Apps Script 백업 코드
 └── package.json
 ```
@@ -143,20 +146,20 @@ raim-visitor-checkin/
 ## 사용 방법
 
 1. **초기 설정**: 관리자 잠금 화면에서 관람실 선택 (기본 목록만) 및 PIN 입력
+2. **체크인 모드 선택**:Firebase의 관람실 목록에서 선택 및 PIN 입력
 2. **체크인 모드 선택**:
    - **AI 모드**: 카메라 앞에 서고 "AI 스캔" 버튼 클릭
      - 스캔 확인 모달에서 "확인" → Firestore 즉시 전송
-     - 스캔 확인 모달에서 "수정" → 리스트 추가 후 수동 편집
+     - 스캔 확인 모달에서 "수정" → 리스트 추가 후 수동 편집 (수동 모드로 전환)
    - **수동 모드**: 성별/연령대 직접 선택 → "추가" 버튼
 3. **방문자 리스트**:
    - 동일 성별/연령대/입력방식은 자동 그룹화
-   - "+/-" 버튼으로 수량 조절, "X" 버튼으로 그룹 삭제
+   - "+/-" 버튼으로 수량 조절, "X" 버튼으로 그룹 삭제, "초기화"로 전체 비우기
    - "완료" 버튼으로 Firebase에 전송
-4. **통계 및 설정**:
-   - 로고 3번 탭 → 대시보드 진입
-   - 커스텀 관람실 설정 (선택사항)
-   - 나이 보정값 조절 후 저장
-
+4. **관리자 대시보드** (로고 3번 탭):
+   - 일일 통계 조회 (관람실별 필터링)
+   - "관람실 관리" 버튼으로 관람실 추가/삭제
+   - 나이 보정값 조절
 ## 상세 문서
 
 - [📝 요구사항 명세서](docs/REQUIREMENTS.md)

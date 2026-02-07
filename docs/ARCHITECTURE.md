@@ -33,7 +33,8 @@ graph TB
     end
     
     subgraph "데이터 계층"
-        FIRESTORE["Firebase Firestore<br/>영구 저장소<br/>Apps Script로만 조회"]
+        FIRESTORE["Firebase Firestore<br/>방문객 데이터 (visitors)<br/>관람실 데이터 (locations)<br/>Apps Script로만 조회"]
+        CACHE["localStorage 캐시<br/>일일 통계 임시 저장<br/>관람실 목록 캐시"]
     end
     
     subgraph "자동화 계층"
@@ -52,6 +53,7 @@ graph TB
     end
     
     USER -->|1. 최초 접속| LOCK
+    LOCK -->|관람실 목록<br/>(캐시 우선)| FIRESTORE
     LOCK -->|인증 성공| MAIN
     MAIN --> UI1
     MAIN --> UI2
@@ -67,6 +69,9 @@ graph TB
     
     LOGO -->|3번 터치| ADMIN
     ADMIN -->|통계 조회| LOCAL
+    ADMIN -->|관실 CRUD| FIRESTORE
+    
+    FIRESTORE -->|캐시| CACHE
     
     APPS --> FUNC1
     FUNC1 -->|읽기| FIRESTORE
@@ -129,12 +134,29 @@ sequenceDiagram
     end
     
     rect rgb(240, 255, 240)
-    Note over Main,Dashboard: 5. 관리자 대시보드 접근 및 수동 백업
+    Note over Main,Dashboard: 5. 관리자 대시보드 접근, 관실 관리 및 수동 백업
     User->>Logo: 로고 3번 터치
     Logo->>Dashboard: 대시보드 열림
     Dashboard->>Local: 일일 통계 조회 (관람실별 필터링)
     Local-->>Dashboard: 오늘 데이터 반환 (localStorage만)
     Note over Dashboard: Firestore 조회 없음<br/>기기별 임시 데이터만 표시
+    
+    alt 관램실 관리 필요 시
+        User->>Dashboard: "관람실 관리" 버튼 클릭
+        Dashboard->>Dashboard: RoomManagementModal 열림
+        alt 관람실 추가
+            User->>Dashboard: 이름 입력 + 추가 버튼
+            Dashboard->>Firestore: locations 컬렉션에 추가
+            Firestore-->>Dashboard: 성공
+            Dashboard->>Local: 캐시 업데이트
+        end
+        alt 관람실 삭제
+            User->>Dashboard: 삭제 버튼 클릭
+            Dashboard->>Dashboard: 삭제 확인 모달
+            Firestore->>Firestore: 문서 삭제
+            Dashboard->>Local: 캐시 업데이트
+        end
+    end
     
     alt 수동 백업 필요 시
         Dashboard->>Dashboard: "백업 및 삭제 실행" 버튼 클릭
@@ -252,26 +274,64 @@ graph LR
 
 ---
 
-## 5. 데이터베이스 스키마
+## 5. 컴포넌트 구조
+
+### 프로젝트 레이아웃
+```
+src/components/
+├── modals/                    # 모달 컴포넌트
+│   ├── ErrorModal.jsx         # 오류 알림
+│   ├── SuccessModal.jsx       # 성공 알림
+│   └── ScanConfirmModal.jsx   # AI 스캔 결과 확인
+├── dashboard/                 # 대시보드 컴포넌트
+│   ├── AgeGroupChart.jsx      # 연령대 분포 막대 차트
+│   ├── GenderChart.jsx        # 성별 분포 도넛 차트
+│   ├── BackupSection.jsx      # 데이터 백업 섹션
+│   └── RoomManagementModal.jsx# 관람실 추가/삭제 모달
+├── AdminLockScreen.jsx        # 관리자 인증 화면
+├── CameraCard.jsx             # 카메라 스캔 영역
+├── Dashboard.jsx              # 메인 대시보드 컨테이너
+├── LanguageToggle.jsx         # 다국어 전환
+├── ManualEntryCard.jsx        # 수동 입력 폼
+└── VisitorList.jsx            # 방문자 목록 관리
+```
+
+### 주요 상태 관리 계층
+
+**App.jsx (최상위 컨테이너)**
+- `visitors[]`: 현재 리스트의 방문자 데이터
+- `scannedVisitors[]`: AI 스캔 결과
+- `isAIMode`: AI/수동 모드 토글
+- `isModelLoaded`: face-api.js 모델 로드 상태
+- Firebase 함수: `submitVisitors()` (통합 제출 로직)
+
+---
+
+## 6. 데이터베이스 스키마
 
 ```mermaid
 erDiagram
     VISITORS {
-        string timestamp "날짜/시간 (ISO8601)"
+        string timestamp "날짜/시간 (serverTimestamp)"
         string gender "성별: 남성/여성"
-        string ageGroup "연령대: 10대~60대+"
-        string source "입력방식: 카메라/수동"
+        string ageGroup "연령대: 유아(0~6세)~노년(65세 이상)"
+        string source "입력방식: AI/수동"
         string location "위치"
     }
-    
+
+    LOCATIONS {
+        string name "관람실 이름 (동적)"
+        string createdAt "생성 시간 (serverTimestamp)"
+    }
+
     SHEETS_BACKUP {
         string timestamp "백업 타임스탬프"
-        string gender "성별"
+        string gender "성별: 남성/여성"
         string ageGroup "연령대"
         string source "입력방식"
         string location "위치"
     }
-    
+
     VISITORS ||--|{ SHEETS_BACKUP : "백업"
 ```
 
