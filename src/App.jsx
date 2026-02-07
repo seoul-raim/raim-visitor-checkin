@@ -182,7 +182,7 @@ function App() {
       
       await faceapi.detectSingleFace(
         dummyCanvas,
-        new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 })
+        new faceapi.TinyFaceDetectorOptions({ inputSize: 608, scoreThreshold: 0.5 })
       ).withFaceLandmarks(true).withAgeAndGender();
       
       dummyCanvas.width = 0;
@@ -222,7 +222,7 @@ function App() {
       const savedCorrection = localStorage.getItem('ageCorrection');
       const ageCorrection = savedCorrection ? parseInt(savedCorrection, 10) : 4;
 
-      const maxDimension = 416;
+      const maxDimension = 608;  // 416→608: 나이 정확도 향상 (약 0.5~0.8초 추가)
       const video = videoRef.current;
       if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
         setErrorMessage('카메라 준비 중입니다.\n잠시 후 다시 시도해주세요.');
@@ -253,7 +253,7 @@ function App() {
       const detections = await faceapi.detectAllFaces(
         canvas,
         new faceapi.TinyFaceDetectorOptions({ 
-          inputSize: 416,
+          inputSize: 608,  // 416→608: 더 높은 해상도로 나이/성별 정확도 향상
           scoreThreshold: 0.5
         })
       )
@@ -264,14 +264,37 @@ function App() {
         setErrorMessage('얼굴을 찾을 수 없습니다.\n카메라 각도와 조명을 확인해주세요.');
         setShowErrorModal(true);
       } else {
-        const newVisitors = detections.map((d) => ({
-          id: generateUniqueId(),
-          ageGroup: convertToGroup(d.age, ageCorrection),
-          gender: d.gender,
-          source: 'AI'
-        }));
-        setScannedVisitors(newVisitors);
-        setShowScanConfirm(true);
+        // 뒷사람 필터링: 얼굴 크기가 일정 이상인 사람만 (앞쪽 사람)
+        const minFaceSize = Math.min(width, height) * 0.12; // 화면 크기의 12% 이상
+        const filteredDetections = detections.filter(d => {
+          const box = d.detection.box;
+          const faceSize = Math.min(box.width, box.height);
+          return faceSize >= minFaceSize;
+        });
+        
+        // 얼굴 크기 순으로 정렬 (큰 얼굴 = 가까운 사람)
+        const sortedDetections = filteredDetections.sort((a, b) => {
+          const sizeA = a.detection.box.width * a.detection.box.height;
+          const sizeB = b.detection.box.width * b.detection.box.height;
+          return sizeB - sizeA;
+        });
+        
+        // 최대 5명까지만 처리 (성능 최적화)
+        const limitedDetections = sortedDetections.slice(0, 5);
+        
+        if (limitedDetections.length === 0) {
+          setErrorMessage('카메라에 더 가까이 오시거나\n정면을 바라봐 주세요.');
+          setShowErrorModal(true);
+        } else {
+          const newVisitors = limitedDetections.map((d) => ({
+            id: generateUniqueId(),
+            ageGroup: convertToGroup(d.age, ageCorrection),
+            gender: d.gender,
+            source: 'AI'
+          }));
+          setScannedVisitors(newVisitors);
+          setShowScanConfirm(true);
+        }
       }
       
       ctx.clearRect(0, 0, canvas.width, canvas.height);
