@@ -15,8 +15,7 @@ import ManualEntryCard from './components/ManualEntryCard';
 import CameraCard from './components/CameraCard';
 import VisitorList from './components/VisitorList';
 import Dashboard from './components/Dashboard';
-import ScanConfirmModal from './components/modals/ScanConfirmModal';
-import SubmitConfirmModal from './components/modals/SubmitConfirmModal';
+import FinalConfirmModal from './components/modals/FinalConfirmModal';
 import LanguageToggle from './components/LanguageToggle';
 
 function App() {
@@ -38,7 +37,6 @@ function App() {
   const [lastCount, setLastCount] = useState(0);
   const [showDashboard, setShowDashboard] = useState(false);
   const [showScanConfirm, setShowScanConfirm] = useState(false);
-  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [scannedVisitors, setScannedVisitors] = useState([]);
 
   const [manualGender, setManualGender] = useState('male');
@@ -423,13 +421,6 @@ function App() {
     }
   };
 
-  const handleScanEdit = () => {
-    setScannedVisitors([]);
-    setShowScanConfirm(false);
-    stopVideo();
-    setIsAIMode(false);  // 수동 모드로 전환 (스캔 결과는 리스트에 추가하지 않음)
-  };
-
   const handleScanCancel = () => {
     clearScanDebounce();
     setShowScanConfirm(false);
@@ -470,13 +461,7 @@ function App() {
     setVisitors([]);
   };
 
-  const submitData = async () => {
-    if (visitors.length === 0) return;
-    setShowSubmitConfirm(true);
-  };
-
   const handleSubmitConfirm = async () => {
-    setShowSubmitConfirm(false);
     await submitVisitors(visitors, false);
   };
 
@@ -499,7 +484,7 @@ function App() {
           if (scannedVisitors.length > 0) {
             handleScanConfirm();
           } else if (visitors.length > 0) {
-            submitData();
+            setShowScanConfirm(true);
           } else if (isAIMode) {
             scanFaces();
           }
@@ -507,19 +492,17 @@ function App() {
         message={errorMessage}
         showRetry={scannedVisitors.length > 0 || visitors.length > 0 || isAIMode}
       />
-      <ScanConfirmModal 
+      <FinalConfirmModal 
         isOpen={showScanConfirm}
         onClose={handleScanCancel}
-        scannedVisitors={scannedVisitors}
-        onConfirm={handleScanConfirm}
-        onEdit={handleScanEdit}
-      />
-      <SubmitConfirmModal
-        isOpen={showSubmitConfirm}
-        onClose={() => setShowSubmitConfirm(false)}
-        onConfirm={handleSubmitConfirm}
-        count={visitors.length}
-        visitors={visitors}
+        visitors={scannedVisitors.length > 0 ? scannedVisitors : visitors}
+        onConfirm={() => {
+          if (scannedVisitors.length > 0) {
+            handleScanConfirm();
+          } else if (visitors.length > 0) {
+            handleSubmitConfirm();
+          }
+        }}
       />
       
       <div style={styles.container}>
@@ -575,7 +558,9 @@ function App() {
           </button>
 
           <button 
-            onClick={submitData}
+            onClick={() => {
+              if (visitors.length > 0) setShowScanConfirm(true);
+            }}
             disabled={isSending || visitors.length === 0}
             style={{ 
               ...styles.submitButton,

@@ -1,5 +1,6 @@
 import { X, Check, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useMemo } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { RAIM_COLORS, normalizeAgeGroupId } from '../../constants';
 
@@ -117,6 +118,19 @@ const getStyles = (device) => {
       color: '#0F766E',
       border: `1px solid ${RAIM_COLORS.TEAL}44`
     },
+    visitorBadge: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: pick({ mobile: '14px', tablet: '15px', tabletA9: '16px', desktop: '16px' }),
+      padding: '4px 10px',
+      borderRadius: '8px',
+      backgroundColor: RAIM_COLORS.MEDIUM,
+      color: 'white',
+      fontWeight: '800',
+      minWidth: '32px',
+      boxShadow: '0 2px 8px rgba(0, 68, 139, 0.2)'
+    },
     buttonContainer: {
       display: 'flex',
       flexDirection: 'row',
@@ -154,7 +168,10 @@ const getStyles = (device) => {
       justifyContent: 'center',
       gap: '10px',
       transition: 'all 0.2s',
-      minHeight: pick({ mobile: '58px', tablet: '64px', tabletA9: '66px', desktop: '70px' })
+      minHeight: pick({ mobile: '58px', tablet: '64px', tabletA9: '66px', desktop: '70px' }),
+      '&:hover': {
+        backgroundColor: '#E5E7EB'
+      }
     },
     alertMessage: {
       display: 'flex',
@@ -172,19 +189,39 @@ const getStyles = (device) => {
   };
 };
 
-export default function ScanConfirmModal({ 
+export default function FinalConfirmModal({ 
   isOpen, 
   onClose, 
-  scannedVisitors, 
-  onConfirm, 
-  onEdit 
+  visitors = [], 
+  onConfirm 
 }) {
   const { t } = useTranslation();
   const { device } = useIsMobile();
   const styles = getStyles(device);
 
-  if (!isOpen) return null;
+  // 성별과 연령대별로 그룹화
+  const groupedVisitors = useMemo(() => {
+    const groups = {};
+    visitors.forEach(visitor => {
+      const key = `${visitor.gender}-${visitor.ageGroup}`;
+      if (!groups[key]) {
+        groups[key] = {
+          gender: visitor.gender,
+          ageGroup: visitor.ageGroup,
+          count: 0
+        };
+      }
+      groups[key].count++;
+    });
+    return Object.values(groups);
+  }, [visitors]);
 
+  // 모든 방문객이 AI 스캔인지 확인
+  const isAIScan = visitors.some(v => v.source === 'ai') || !visitors.some(v => v.source);
+
+  if (!isOpen || visitors.length === 0) return null;
+  
+  // AI 스캔 모달 UI 사용 (버튼 2개: Cancel, Confirm만)
   return (
     <div style={styles.modalOverlay}>
       <div style={styles.modalContent}>
@@ -207,22 +244,24 @@ export default function ScanConfirmModal({
         </div>
 
         <div style={styles.visitorList}>
-          {scannedVisitors.map((visitor, index) => (
-            <div key={visitor.id} style={styles.visitorItem}>
+          {groupedVisitors.map((group, idx) => (
+            <div key={idx} style={styles.visitorItem}>
               <div style={styles.visitorAvatar}>
-                {visitor.gender === 'male' ? t('common.male').charAt(0) : t('common.female').charAt(0)}
+                {group.gender === 'male' ? t('common.male').charAt(0) : t('common.female').charAt(0)}
               </div>
               <div style={styles.visitorInfo}>
-                <div style={styles.visitorAgeGroup}>{t(`ageGroups.${visitor.ageGroup}`)}</div>
+                <div style={styles.visitorAgeGroup}>{t(`ageGroups.${group.ageGroup}`)}</div>
                 <div style={styles.visitorBadges}>
-                  <span style={{...styles.badge, ...styles.badgeGender}}>
-                    {visitor.gender === 'male' ? t('common.male') : t('common.female')}
-                  </span>
-                  <span style={{...styles.badge, ...styles.badgeSource}}>
-                    {t('visitorList.aiTag')}
-                  </span>
+                  {isAIScan && (
+                    <span style={{...styles.badge, ...styles.badgeSource}}>
+                      {t('visitorList.aiTag')}
+                    </span>
+                  )}
                 </div>
               </div>
+              <span style={{...styles.badge, ...styles.visitorBadge}}>
+                {group.count}
+              </span>
             </div>
           ))}
         </div>
@@ -230,10 +269,9 @@ export default function ScanConfirmModal({
         <div style={styles.buttonContainer}>
           <button 
             style={styles.editButton}
-            onClick={onEdit}
+            onClick={onClose}
           >
-            <AlertCircle size={22} />
-            {t('scanConfirm.editButton')}
+            {t('common.cancel')}
           </button>
           <button 
             style={styles.confirmButton}

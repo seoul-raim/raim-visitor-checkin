@@ -104,12 +104,14 @@
 ## 데이터 백업 관리
 
 ### 자동 백업 (설정 간격마다)
+
 - Google Apps Script 트리거로 자동 실행
 - Firestore → Google Sheets로 데이터 이동
 - 완료 후 Firestore 데이터 자동 삭제
 - 오류 발생 시 설정된 이메일로 알림 전송
 
 ### 수동 백업 (필요시)
+
 - 관리자 대시보드 진입 (로고 3번 탭)
 - "데이터 백업 및 삭제" 섹션의 "지금 백업 및 삭제 실행" 버튼 클릭
 - 2단계 확인 모달에서 "실행하기" 선택
@@ -118,7 +120,9 @@
 - 실패: 빨간색 에러 메시지 표시
 
 ### 트리거 설정 확인
+
 **파일**: `public/script.txt`
+
 - 함수: `backupAndDelete()`
 - 실행 주기: 6시간마다 (권장) 또는 3시간마다
 - 오류 알림: 매일 이메일 수신
@@ -170,38 +174,6 @@ export const AGE_GROUP_LABELS = {
 ```
 
 1. `npm run build` → `git push` (자동 배포)
-
-### 관람실 추가/수정
-
-**파일 위치**: `src/constants.js`
-
-**수정 방법**:
-
-1. `roomLocations` 배열 수정:
-
-```jsx
-export const roomLocations = [
-  "상설전시",
-  "기획전시",
-  // 새 관람실 추가:
-  "특별전시실",
-  "다목적실-4"
-];
-
-```
-
-1. `npm run build` → `git push` (자동 배포)
-
-**커스텀 관람실 기능**:
-
-- 관리자 대시보드에서 "직접 입력 (커스텀)" 옵션 선택 시 임의의 관람실 이름 입력 가능
-- 커스텀 관람실은 코드 수정 없이 현장에서 즉시 사용 가능
-- AdminLockScreen에서는 기본 목록만 선택 가능, 대시보드에서만 커스텀 입력 가능
-- 커스텀 관람실도 데이터 전송 및 통계에 정상 반영됨
-
-**주의사항**:
-
-- 커스텀 관람실은 localStorage에 저장되며, 브라우저 데이터 삭제 시 초기화됨
 
 ---
 
@@ -314,7 +286,7 @@ git push origin main
     service cloud.firestore {
       match /databases/{database}/documents {
         
-        // ============ 관람실 컬렉션 (선택사항) ============
+        // ============ 관람실 컬렉션 ============
         match /locations/{document=**} {
           allow read: if true;
           allow create, update, delete: if true;
@@ -382,11 +354,13 @@ git push origin main
 **위치**: 관리자 대시보드 → "데이터 백업 및 삭제" 섹션
 
 **실행 방법**:
+
 1. 관리자 대시보드 PIN 입력
 2. 아래로 스크롤하여 "지금 백업 및 삭제 실행" 버튼 클릭 (빨간색)
 3. ⚠️ 확인 모달에서 "예, 실행하겠습니다" 선택
 
 **작동 원리**:
+
 - React에서 GET 요청을 Google Apps Script로 전송
 - Apps Script가 `backupAndDelete()` 함수 실행
 - Firestore 모든 방문객 데이터를 Google Sheets로 백업
@@ -394,21 +368,25 @@ git push origin main
 - 1-3분 내 완료
 
 **자동 재시도 메커니즘**:
+
 - 네트워크 오류 발생 시: 자동으로 3초 대기 후 재시도
 - API 오류 발생 시: 자동으로 2초 대기 후 재시도
 - 최대 2회까지 자동 재시도 (총 3번 시도)
 - 3번 모두 실패 시 오류 메시지 표시 및 중단
 
 **중복 실행 방지**:
+
 - 백업 진행 중에는 버튼이 비활성화 (클릭 불가)
 - "진행 중..." 상태 표시로 사용자 피드백 제공
 - 버튼을 빠르게 여러 번 클릭해도 중복 실행되지 않음
 
 **성공 상태 표시**:
+
 ```
 ✓ 백업 및 삭제가 성공적으로 완료되었습니다.
 
 Firebase 데이터가 엑셀로 백업되고, Firestore에서 삭제되었습니다.
+
 ```
 
 ### 자동 백업 (스케줄)
@@ -416,6 +394,7 @@ Firebase 데이터가 엑셀로 백업되고, Firestore에서 삭제되었습니
 **실행 시간**: 매일 0시, 6시, 12시, 18시경 (6시간 간격)
 
 **확인 방법**:
+
 1. Apps Script 편집기 열기
 2. "실행 로그" 또는 "모니터링" 탭에서 실행 기록 확인
 3. 실패 시 등록된 메일로 오류 알림 수신
@@ -426,52 +405,58 @@ Firebase 데이터가 엑셀로 백업되고, Firestore에서 삭제되었습니
 
 ### 백업 관련 오류
 
-#### 문제: "⏳ 백업이 이미 진행 중입니다"
+### 문제: "⏳ 백업이 이미 진행 중입니다"
 
 **원인**: 이전 백업이 아직 진행 중이거나 앱 상태 오류
 
 **해결**:
+
 1. 30초 대기
 2. 페이지 새로고침 (F5 또는 Ctrl+R)
 3. 다시 시도
 
-#### 문제: "⚠️ 작업 실패 (1/2 재시도 중)" 또는 "(2/2 재시도 중)"
+### 문제: "⚠️ 작업 실패 (1/2 재시도 중)" 또는 "(2/2 재시도 중)"
 
 **원인**: 일시적 네트워크 오류 또는 API 오류
 
 **해결**:
+
 1. 자동 재시도 완료 대기 (각 재시도 사이 2-3초)
 2. 모두 실패하면 30초 후 다시 시도
 3. 반복 실패 시 "헬스 체크" 필요
 
-#### 문제: "✗ 요청 실패 (최대 재시도 초과)"
+### 문제: "✗ 요청 실패 (최대 재시도 초과)"
 
-**원인**: 
+**원인**:
+
 - 인터넷 연결 끊김
 - Apps Script 배포 URL 변경/삭제
 - 방화벽이 요청 차단
 
 **해결**:
+
 1. 인터넷 연결 확인
 2. `.env` 파일에서 `VITE_GOOGLE_APPS_SCRIPT_URL` 값 확인
-3. [Apps Script 배포 관리](https://script.google.com) → "배포" 탭에서 현재 배포 확인
+3. [Apps Script 배포 관리](https://script.google.com/) → "배포" 탭에서 현재 배포 확인
 4. 방화벽/VPN 설정 확인
 
-#### 문제: "✗ 최대 재시도 횟수 초과 - 오류: [오류 메시지]"
+### 문제: "✗ 최대 재시도 횟수 초과 - 오류: [오류 메시지]"
 
 **원인**: Apps Script 내부 오류
 
 **해결**:
-1. [Apps Script 편집기](https://script.google.com) 열기
+
+1. [Apps Script 편집기](https://script.google.com/) 열기
 2. "실행 로그" 탭에서 최근 오류 메시지 확인
 3. 일반적인 오류:
-   - **"Missing service account credentials"**: Firebase 설정 누락 → `Configuration` 섹션 확인
-   - **"No sheet named"**: Google Sheets 이름 변경됨 → `SHEET_NAME` 값 확인
-   - **"Firebase quota exceeded"**: API 호출 초과 → 24시간 대기 후 재시도
+    - **"Missing service account credentials"**: Firebase 설정 누락 → `Configuration` 섹션 확인
+    - **"No sheet named"**: Google Sheets 이름 변경됨 → `SHEET_NAME` 값 확인
+    - **"Firebase quota exceeded"**: API 호출 초과 → 24시간 대기 후 재시도
 
-#### 문제: Apps Script 배포 URL 변경된 경우
+### 문제: Apps Script 배포 URL 변경된 경우
 
 **해결 방법**:
+
 1. Apps Script 편집기 열기
 2. "배포" → "새로운 배포" 클릭
 3. 실행 타입: "웹 앱"

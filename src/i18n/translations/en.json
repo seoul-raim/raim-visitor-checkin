@@ -49,9 +49,9 @@
     "resetButton": "Reset"
   },
   "scanConfirm": {
-    "title": "Confirm Scan Results",
+    "title": "Final Confirmation",
     "detected": "{{count}} detected",
-    "editInfo": "If the information is incorrect, you can edit it",
+    "editInfo": "Please verify the information is correct",
     "confirmButton": "Confirm",
     "editButton": "Edit",
     "cancelButton": "Cancel"

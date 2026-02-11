@@ -49,9 +49,9 @@
     "resetButton": "초기화"
   },
   "scanConfirm": {
-    "title": "스캔 결과 확인",
+    "title": "최종 확인",
     "detected": "{{count}}명 인식됨",
-    "editInfo": "정보가 올바르지 않다면, 수정할 수 있습니다",
+    "editInfo": "정보가 정확한지 확인해주세요",
     "confirmButton": "확인",
     "editButton": "수정",
     "cancelButton": "취소"
