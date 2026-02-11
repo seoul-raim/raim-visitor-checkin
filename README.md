@@ -106,8 +106,9 @@ raim-visitor-checkin/
 │   │   ├── VisitorList.jsx             # 방문자 목록 및 편집
 │   │   ├── modals/                     # 모달 컴포넌트
 │   │   │   ├── ErrorModal.jsx          # 오류 알림 모달
-│   │   │   ├── SuccessModal.jsx        # 완료 알림 모달
-│   │   │   └── ScanConfirmModal.jsx    # AI 스캔 확인 모달
+│   │   │   ├── ScanConfirmModal.jsx    # AI 스캔 확인 모달
+│   │   │   ├── SubmitConfirmModal      # 재확인 모달
+│   │   │   └── SuccessModal.jsx        # 완료 알림 모달
 │   │   └── dashboard/                  # 대시보드 관련 컴포넌트
 │   │       ├── AgeGroupChart.jsx       # 연령대 분포 차트
 │   │       ├── GenderChart.jsx         # 성별 분포 차트
@@ -146,7 +147,7 @@ raim-visitor-checkin/
    - **AI 모드**: 카메라 앞에 서고 "AI 스캔" 버튼 클릭
      - 스캔 확인 모달에서 "확인" → Firestore 즉시 전송
      - 스캔 확인 모달에서 "수정" → 리스트 추가 후 수동 편집 (수동 모드로 전환)
-   - **수동 모드**: 성별/연령대 직접 선택 → "추가" 버튼
+   - **수동 모드**: 성별/연령대 직접 선택 
 3. **방문자 리스트**:
    - 동일 성별/연령대/입력방식은 자동 그룹화
    - "+/-" 버튼으로 수량 조절, "X" 버튼으로 그룹 삭제, "초기화"로 전체 비우기
