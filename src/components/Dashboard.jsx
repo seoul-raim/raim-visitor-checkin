@@ -367,6 +367,7 @@ export default function Dashboard({ onClose, onSave }) {
   const { device } = useIsMobile();
   const styles = getStyles(device);
   const retryTimeoutRef = useRef(null);
+  const abortControllerRef = useRef(null);
   
   const [todayCount, setTodayCount] = useState(0);
   const [ageCorrection, setAgeCorrection] = useState(4);
@@ -398,10 +399,18 @@ export default function Dashboard({ onClose, onSave }) {
   // 백업 진행 중 여부 (backupStatus로부터 계산)
   const isBackupInProgress = useMemo(() => backupStatus === 'loading', [backupStatus]);
 
+  // 로컬 날짜 문자열 생성 헬퍼 함수 (타임존 안전)
+  const getLocalDateString = (date = new Date()) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // 오늘의 방문객 데이터 분석 (현재 관람실만 필터링)
   const analyzeVisitorData = useCallback((currentRoom) => {
-    const today = new Date().toISOString().split('T')[0]; // ISO 형식: YYYY-MM-DD
-    const todayDataKey = `todayVisitors_${today}`;
+    const todayStr = getLocalDateString();
+    const todayDataKey = `todayVisitors_${todayStr}`;
     const savedVisitors = localStorage.getItem(todayDataKey);
     
     if (savedVisitors) {
@@ -424,7 +433,7 @@ export default function Dashboard({ onClose, onSave }) {
 
       visitors.forEach(visitor => {
         const normalizedAgeGroup = normalizeAgeGroupId(visitor.ageGroup);
-        // 데이터는 이제 항상 영문 코드 형식으로 저장됨
+        // 로컬스토리지에는 영문(male/female)으로 저장됨
         const normalizedGender = visitor.gender === 'male' ? 'male' : visitor.gender === 'female' ? 'female' : '';
 
         // 연령대 집계
@@ -463,7 +472,7 @@ export default function Dashboard({ onClose, onSave }) {
         gender: { male: 0, female: 0 }
       });
     }
-  }, []);
+  }, [getLocalDateString]);
 
   // Firebase에서 관람실 목록 로드 (캐시 우선)
   const loadRoomLocations = useCallback(async () => {
@@ -522,6 +531,9 @@ export default function Dashboard({ onClose, onSave }) {
     return () => {
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, [loadRoomLocations, analyzeVisitorData]);
@@ -648,7 +660,9 @@ export default function Dashboard({ onClose, onSave }) {
       return;
     }
 
+    // AbortController 생성
     const controller = new AbortController();
+    abortControllerRef.current = controller;
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     try {
@@ -661,6 +675,7 @@ export default function Dashboard({ onClose, onSave }) {
       });
 
       clearTimeout(timeoutId);
+      abortControllerRef.current = null;
       const result = await response.json();
 
       if (result.success) {
@@ -683,6 +698,7 @@ export default function Dashboard({ onClose, onSave }) {
       }
     } catch (error) {
       clearTimeout(timeoutId);
+      abortControllerRef.current = null;
       const isTimeout = error.name === 'AbortError';
       const errorLabel = isTimeout ? '요청 시간이 초과되었습니다' : '네트워크 오류';
 

@@ -75,7 +75,7 @@ export default function SuccessModal({ isOpen, onClose, count }) {
       
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, onClose]);
   
   if (!isOpen) return null;
   return (

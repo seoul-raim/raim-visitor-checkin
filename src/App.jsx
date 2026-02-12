@@ -44,19 +44,30 @@ function App() {
   const [isAIMode, setIsAIMode] = useState(false);
   const [logoClickCount, setLogoClickCount] = useState(0);
   const logoClickTimeoutRef = useRef(null);
+  const isMountedRef = useRef(true);
 
   const { isMobile, isTablet, device } = useIsMobile();
   const styles = useMemo(() => getStyles(device), [device]);
 
+  // 로컬 날짜 문자열 생성 헬퍼 함수 (타임존 안전)
+  const getLocalDateString = (date = new Date()) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   useEffect(() => {
-    // 과거 날짜 데이터 삭제 (정규표현식으로 최적화)
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0]; // ISO 형식: YYYY-MM-DD
+    isMountedRef.current = true;
+    
+    // 과거 날짜 데이터 삭제
+    const todayStr = getLocalDateString();
     const keys = Object.keys(localStorage);
-    const dataKeyRegex = /^(visitorCount|todayVisitors)_/;
+    // visitorCount_날짜, todayVisitors_날짜 형식만 필터링
+    const dataKeyRegex = /^(visitorCount|todayVisitors)_\d{4}-\d{2}-\d{2}$/;
     
     keys.filter(key => dataKeyRegex.test(key)).forEach(key => {
-      const dateStr = key.split('_').slice(1).join('_');
+      const dateStr = key.substring(key.indexOf('_') + 1);
       
       if (dateStr !== todayStr) {
         localStorage.removeItem(key);
@@ -129,9 +140,12 @@ function App() {
 
   useEffect(() => {
     return () => {
+      isMountedRef.current = false;
       stopVideo();
+      
+      // Canvas cleanup 강화
       if (canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d');
+        const ctx = canvasCtxRef.current;
         if (ctx) {
           ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         }
@@ -140,6 +154,7 @@ function App() {
       }
       canvasCtxRef.current = null;
       canvasRef.current = null;
+      
       if (scanDebounceRef.current) {
         clearTimeout(scanDebounceRef.current);
       }
@@ -147,7 +162,7 @@ function App() {
         clearTimeout(logoClickTimeoutRef.current);
       }
     };
-  }, []);
+  }, [stopVideo]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -169,7 +184,7 @@ function App() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pagehide', handlePageHide);
     };
-  }, []);
+  }, [showDashboard, isAdminLocked, showRoomSetup, isModelLoaded, isAIMode, startVideo, stopVideo]);
 
   const warmupModel = async () => {
     try {
@@ -327,27 +342,34 @@ function App() {
   const submitVisitors = async (visitorsToSubmit, isScanConfirm = false) => {
     const roomLocation = localStorage.getItem('room_location');
     if (!roomLocation) {
-      setErrorMessage('관람실이 설정되지 않았습니다.\n관리자 대시보드에서 설정해주세요.');
-      setShowErrorModal(true);
+      if (isMountedRef.current) {
+        setErrorMessage('관람실이 설정되지 않았습니다.\n관리자 대시보드에서 설정해주세요.');
+        setShowErrorModal(true);
+      }
       return;
     }
 
     if (!db) {
-      setErrorMessage('Firebase가 설정되지 않았습니다.\n관리자에게 문의하세요.');
-      setShowErrorModal(true);
+      if (isMountedRef.current) {
+        setErrorMessage('Firebase가 설정되지 않았습니다.\n관리자에게 문의하세요.');
+        setShowErrorModal(true);
+      }
       return;
     }
     
     if (!navigator.onLine) {
-      setErrorMessage('인터넷 연결이 없습니다.\n네트워크 연결을 확인해주세요.');
-      setShowErrorModal(true);
+      if (isMountedRef.current) {
+        setErrorMessage('인터넷 연결이 없습니다.\n네트워크 연결을 확인해주세요.');
+        setShowErrorModal(true);
+      }
       return;
     }
     
     if (isSending) return;
+    if (!isMountedRef.current) return;
     setIsSending(true);
     
-    const today = new Date().toISOString().split('T')[0]; // ISO 형식: YYYY-MM-DD
+    const today = getLocalDateString();
     const savedCount = localStorage.getItem(`visitorCount_${today}`);
     const previousCount = savedCount ? parseInt(savedCount, 10) : 0;
     const todayDataKey = `todayVisitors_${today}`;
@@ -386,6 +408,9 @@ function App() {
       existingVisitors.push(...visitorsWithRoom);
       localStorage.setItem(todayDataKey, JSON.stringify(existingVisitors));
       
+      // 컴포넌트가 마운트된 경우에만 상태 업데이트
+      if (!isMountedRef.current) return;
+      
       setLastCount(visitorsToSubmit.length);
       setShowModal(true);
       
@@ -410,10 +435,14 @@ function App() {
         errorMsg = '데이터 전송에 실패했습니다.\n' + (error.message || '알 수 없는 오류');
       }
       
-      setErrorMessage(errorMsg);
-      setShowErrorModal(true);
+      if (isMountedRef.current) {
+        setErrorMessage(errorMsg);
+        setShowErrorModal(true);
+      }
     } finally {
-      setIsSending(false);
+      if (isMountedRef.current) {
+        setIsSending(false);
+      }
       // 스캔 모드에서는 즉시 스캔 가능 상태
       if (isScanConfirm) {
         clearScanDebounce();
