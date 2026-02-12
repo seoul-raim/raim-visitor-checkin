@@ -1,5 +1,9 @@
 # RAIM 방문자 등록 시스템
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/8b1d3283-623e-47ad-8f57-e6325a86bc25" width="700" height="433" alt="image" />
+</p>
+
 서울로봇인공지능과학관(RAIM)의 AI인식 기반 방문자 등록 시스템입니다. AI 얼굴 인식 기술을 활용하여 방문자의 성별과 연령대를 자동으로 감지하고, Firebase를 통해 실시간 데이터를 수집·관리합니다.
 
 ## 주요 기능
